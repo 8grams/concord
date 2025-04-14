@@ -15,12 +15,12 @@
 
 ## 🔧 Tech Stack
 
-| Layer | Technology |
-|-------|------------|
-| Backend | Node.js |
-| Frontend | [Astro](https://astro.build/) + HTMX + AlpineJS |
-| Styling | [DaisyUI](https://github.com/8grams/astro-dashboard-template) |
-| Git Graph | [MermaidJS](https://mermaid.js.org/) |
+| Layer      | Technology |
+|------------|------------|
+| Backend    | Node.js    |
+| Frontend   | [Astro](https://astro.build/) + AlpineJS |
+| Styling    | [DaisyUI](https://github.com/8grams/astro-dashboard-template) |
+| Git Graph  | [MermaidJS](https://mermaid.js.org/) |
 | Git Parser | [gitlog](https://github.com/domharrington/node-gitlog) |
 
 ## 📸 Screenshots / Wireframes
@@ -34,14 +34,15 @@ Check out our Miro board: [📌 Concord Miro Board](https://miro.com/app/board/u
 - Node.js ≥ 18
 - Git
 - Terraform (optional, for full provisioning workflows)
+- [pnpm](https://pnpm.io/) (Package manager)
 
 ### Installation
 
 ```bash
 git clone https://github.com/8grams/concord.git
 cd concord
-npm install
-npm run dev
+pnpm install
+pnpm dev
 ```
 
 > For production setup, please refer to the `docs/DEPLOY.md` (coming soon).
