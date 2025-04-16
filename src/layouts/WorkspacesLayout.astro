@@ -1,0 +1,15 @@
+---
+import HomeLayout from "./HomeLayout.astro";
+
+const { current } = Astro.props;
+---
+
+<HomeLayout>
+  <div class="tabs tabs-border tabs-lg">
+    <a class="tab" href="/workspaces" class:list={[current === "workspaces" && "tab-active"]}>Workspaces</a>
+    <a class="tab" href="/users" class:list={[current === "users" && "tab-active"]}>Users</a>
+  </div>
+  <div class="p-4 flex flex-col">
+    <slot />
+  </div>
+</HomeLayout>
