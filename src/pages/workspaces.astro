@@ -1,16 +1,12 @@
 ---
 import WorkspacesLayout from "../layouts/WorkspacesLayout.astro";
 import NewWorkspace from "./new-workspace.astro";
+import DeleteWorkspace from "./delete-workspace.astro";
 ---
 
 <WorkspacesLayout current="workspaces">
   <div class="self-end" x-data>
-    <button
-      class="btn"
-      x-on:click="$refs.dialog.showModal()"
-    >
-      Create
-    </button>
+    <button class="btn" x-on:click="$refs.dialog.showModal()">Create</button>
     <NewWorkspace />
   </div>
   <table class="table">
@@ -49,23 +45,29 @@ import NewWorkspace from "./new-workspace.astro";
             </button>
             <NewWorkspace />
           </div>
-          <button class="btn btn-circle btn-ghost">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 16 16"
+          <div class="inline-block" x-data>
+            <button
+              class="btn btn-circle btn-ghost"
+              x-on:click="$refs.dialog.showModal()"
             >
-              <!-- Icon from HeroIcons by Refactoring UI Inc - https://github.com/tailwindlabs/heroicons/blob/master/LICENSE -->
-              <path
-                fill="currentColor"
-                fill-rule="evenodd"
-                d="M5 3.25V4H2.75a.75.75 0 0 0 0 1.5h.3l.815 8.15A1.5 1.5 0 0 0 5.357 15h5.286a1.5 1.5 0 0 0 1.492-1.35l.815-8.15h.3a.75.75 0 0 0 0-1.5H11v-.75A2.25 2.25 0 0 0 8.75 1h-1.5A2.25 2.25 0 0 0 5 3.25m2.25-.75a.75.75 0 0 0-.75.75V4h3v-.75a.75.75 0 0 0-.75-.75zM6.05 6a.75.75 0 0 1 .787.713l.275 5.5a.75.75 0 0 1-1.498.075l-.275-5.5A.75.75 0 0 1 6.05 6m3.9 0a.75.75 0 0 1 .712.787l-.275 5.5a.75.75 0 0 1-1.498-.075l.275-5.5a.75.75 0 0 1 .786-.711"
-                clip-rule="evenodd"
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
               >
-              </path>
-            </svg>
-          </button>
+                <!-- Icon from HeroIcons by Refactoring UI Inc - https://github.com/tailwindlabs/heroicons/blob/master/LICENSE -->
+                <path
+                  fill="currentColor"
+                  fill-rule="evenodd"
+                  d="M5 3.25V4H2.75a.75.75 0 0 0 0 1.5h.3l.815 8.15A1.5 1.5 0 0 0 5.357 15h5.286a1.5 1.5 0 0 0 1.492-1.35l.815-8.15h.3a.75.75 0 0 0 0-1.5H11v-.75A2.25 2.25 0 0 0 8.75 1h-1.5A2.25 2.25 0 0 0 5 3.25m2.25-.75a.75.75 0 0 0-.75.75V4h3v-.75a.75.75 0 0 0-.75-.75zM6.05 6a.75.75 0 0 1 .787.713l.275 5.5a.75.75 0 0 1-1.498.075l-.275-5.5A.75.75 0 0 1 6.05 6m3.9 0a.75.75 0 0 1 .712.787l-.275 5.5a.75.75 0 0 1-1.498-.075l.275-5.5a.75.75 0 0 1 .786-.711"
+                  clip-rule="evenodd"
+                >
+                </path>
+              </svg>
+            </button>
+            <DeleteWorkspace />
+          </div>
         </td>
       </tr>
     </tbody>

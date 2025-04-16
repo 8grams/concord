@@ -1,3 +1,9 @@
+---
+if (Astro.request.method === "POST") {
+  return Astro.redirect("/workspaces");
+}
+---
+
 <dialog x-ref="dialog" class="modal">
   <div class="modal-box">
     <form class="flex flex-col gap-4" action="/new-workspace" method="post">
@@ -8,19 +14,34 @@
       </label>
       <label class="floating-label">
         <span>IaC URL</span>
-        <input type="text" placeholder="IaC URL" class="input input-md w-full" />
+        <input
+          type="text"
+          placeholder="IaC URL"
+          class="input input-md w-full"
+        />
       </label>
       <label class="floating-label">
         <span>Main Directory</span>
-        <input type="text" placeholder="Main Directory" class="input input-md w-full" />
+        <input
+          type="text"
+          placeholder="Main Directory"
+          class="input input-md w-full"
+        />
       </label>
       <label class="floating-label">
         <span>Private Key</span>
-        <textarea placeholder="Private Key" class="textarea textarea-md w-full"></textarea>
+        <textarea placeholder="Private Key" class="textarea textarea-md w-full">
+        </textarea>
       </label>
       <div class="mt-4 flex gap-2">
         <button class="btn btn-primary">Save</button>
-        <button class="btn btn-secondary" type="button" x-on:click="$refs.dialog.close()">Cancel</button>
+        <button
+          class="btn btn-secondary"
+          type="button"
+          x-on:click="$refs.dialog.close()"
+        >
+          Cancel
+        </button>
       </div>
     </form>
   </div>
