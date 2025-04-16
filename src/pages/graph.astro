@@ -2,6 +2,52 @@
 import GraphLayout from "../layouts/GraphLayout.astro";
 ---
 
-<GraphLayout>
+<GraphLayout current="graph">
+  <script>
+    import mermaid from "mermaid";
+    mermaid.initialize({ startOnLoad: true });
+  </script>
   <h1 class="font-bold text-lg">Commit Histories</h1>
+  <div class="flex">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Graph</th>
+          <th>Description</th>
+          <th>Date</th>
+          <th>Author</th>
+          <th>Commit</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td rowspan="3">
+            <pre
+              class="mermaid">
+            gitGraph BT:
+              commit
+              commit
+              commit
+          </pre>
+          </td>
+          <td>cleanup</td>
+          <td>9 April 2025 18:90</td>
+          <td>Glend Maatita</td>
+          <td>123456</td>
+        </tr>
+        <tr>
+          <td>cleanup</td>
+          <td>9 April 2025 18:90</td>
+          <td>Glend Maatita</td>
+          <td>123456</td>
+        </tr>
+        <tr>
+          <td>cleanup</td>
+          <td>9 April 2025 18:90</td>
+          <td>Glend Maatita</td>
+          <td>123456</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 </GraphLayout>
