@@ -1,9 +1,18 @@
 ---
 import WorkspacesLayout from "../layouts/WorkspacesLayout.astro";
+import NewWorkspace from "./new-workspace.astro";
 ---
 
 <WorkspacesLayout current="workspaces">
-  <button class="btn self-end">Create</button>
+  <div class="self-end" x-data>
+    <button
+      class="btn"
+      x-on:click="$refs.dialog.showModal()"
+    >
+      Create
+    </button>
+    <NewWorkspace />
+  </div>
   <table class="table">
     <thead>
       <tr>
@@ -16,27 +25,30 @@ import WorkspacesLayout from "../layouts/WorkspacesLayout.astro";
       <tr>
         <td>Pusaka Infra</td>
         <td>git@github.com</td>
-        <td class="w-0 whitespace-nowrap">
-          <button class="btn btn-circle btn-ghost" x-data>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 16 16"
+        <td class="w-1 whitespace-nowrap">
+          <div class="inline-block" x-data>
+            <button
+              class="btn btn-circle btn-ghost"
+              x-on:click="$refs.dialog.showModal()"
             >
-              <!-- Icon from HeroIcons by Refactoring UI Inc - https://github.com/tailwindlabs/heroicons/blob/master/LICENSE -->
-              <path
-                fill="currentColor"
-                fill-rule="evenodd"
-                d="M11.013 2.513a1.75 1.75 0 0 1 2.475 2.474L6.226 12.25a2.8 2.8 0 0 1-.892.596l-2.047.848a.75.75 0 0 1-.98-.98l.848-2.047a2.8 2.8 0 0 1 .596-.892z"
-                clip-rule="evenodd"
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
               >
-              </path>
-            </svg>
-            <template x-teleport="body">
-              <div>Hello world!</div>
-            </template>
-          </button>
+                <!-- Icon from HeroIcons by Refactoring UI Inc - https://github.com/tailwindlabs/heroicons/blob/master/LICENSE -->
+                <path
+                  fill="currentColor"
+                  fill-rule="evenodd"
+                  d="M11.013 2.513a1.75 1.75 0 0 1 2.475 2.474L6.226 12.25a2.8 2.8 0 0 1-.892.596l-2.047.848a.75.75 0 0 1-.98-.98l.848-2.047a2.8 2.8 0 0 1 .596-.892z"
+                  clip-rule="evenodd"
+                >
+                </path>
+              </svg>
+            </button>
+            <NewWorkspace />
+          </div>
           <button class="btn btn-circle btn-ghost">
             <svg
               xmlns="http://www.w3.org/2000/svg"
