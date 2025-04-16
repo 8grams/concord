@@ -1,0 +1,94 @@
+---
+import Layout from "./Layout.astro";
+---
+
+<Layout>
+  <div class="navbar bg-base-100 shadow-sm">
+    <div class="navbar-start">
+      <div class="dropdown">
+        <div tabindex="0" class="btn">
+          Workspace 3
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+          >
+            <!-- Icon from HeroIcons by Refactoring UI Inc - https://github.com/tailwindlabs/heroicons/blob/master/LICENSE -->
+            <path
+              fill="currentColor"
+              fill-rule="evenodd"
+              d="M4.22 6.22a.75.75 0 0 1 1.06 0L8 8.94l2.72-2.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L4.22 7.28a.75.75 0 0 1 0-1.06"
+              clip-rule="evenodd"
+            >
+            </path>
+          </svg>
+        </div>
+        <ul
+          tabindex="0"
+          class="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm"
+        >
+          <li><a class="">Workspace 1</a></li>
+          <li><a class="">Workspace 2</a></li>
+          <li><a class="menu-active">Workspace 3</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="navbar-end">
+      <button class="btn btn-ghost btn-circle">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="size-5"
+          viewBox="0 0 20 20"
+        >
+          <!-- Icon from HeroIcons by Refactoring UI Inc - https://github.com/tailwindlabs/heroicons/blob/master/LICENSE -->
+          <path
+            fill="currentColor"
+            fill-rule="evenodd"
+            d="M7.84 1.804A1 1 0 0 1 8.82 1h2.36a1 1 0 0 1 .98.804l.331 1.652a7 7 0 0 1 1.929 1.115l1.598-.54a1 1 0 0 1 1.186.447l1.18 2.044a1 1 0 0 1-.205 1.251l-1.267 1.113a7 7 0 0 1 0 2.228l1.267 1.113a1 1 0 0 1 .206 1.25l-1.18 2.045a1 1 0 0 1-1.187.447l-1.598-.54a7 7 0 0 1-1.929 1.115l-.33 1.652a1 1 0 0 1-.98.804H8.82a1 1 0 0 1-.98-.804l-.331-1.652a7 7 0 0 1-1.929-1.115l-1.598.54a1 1 0 0 1-1.186-.447l-1.18-2.044a1 1 0 0 1 .205-1.251l1.267-1.114a7 7 0 0 1 0-2.227L1.821 7.773a1 1 0 0 1-.206-1.25l1.18-2.045a1 1 0 0 1 1.187-.447l1.598.54a7 7 0 0 1 1.93-1.115zM10 13a3 3 0 1 0 0-6a3 3 0 0 0 0 6"
+            clip-rule="evenodd"
+          >
+          </path>
+        </svg>
+      </button>
+      <div class="dropdown dropdown-end">
+        <button class="btn btn-ghost btn-circle">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="size-5"
+            viewBox="0 0 16 16"
+          >
+            <!-- Icon from HeroIcons by Refactoring UI Inc - https://github.com/tailwindlabs/heroicons/blob/master/LICENSE -->
+            <path
+              fill="currentColor"
+              fill-rule="evenodd"
+              d="M15 8A7 7 0 1 1 1 8a7 7 0 0 1 14 0m-5-2a2 2 0 1 1-4 0a2 2 0 0 1 4 0M8 9a5 5 0 0 0-4.295 2.437A5.49 5.49 0 0 0 8 13.5a5.49 5.49 0 0 0 4.294-2.063A5 5 0 0 0 8 9"
+              clip-rule="evenodd"
+            >
+            </path>
+          </svg>
+        </button>
+        <div
+          tabindex="0"
+          class="dropdown-content card card-side bg-base-100 z-1 w-72 shadow-md"
+        >
+          <figure>
+            <img
+              class="h-32"
+              src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp"
+            />
+          </figure>
+          <div class="card-body">
+            <h2 class="card-title">Susi Maryanti</h2>
+            <div class="card-actions">
+              <button class="btn">Logout</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div>
+    <slot />
+  </div>
+</Layout>

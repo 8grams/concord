@@ -1,0 +1,13 @@
+---
+import HomeLayout from "./HomeLayout.astro";
+---
+
+<HomeLayout>
+  <div class="tabs tabs-border tabs-lg">
+    <a class="tab tab-active">Graph</a>
+    <a class="tab">Update</a>
+  </div>
+  <div class="p-4">
+    <slot />
+  </div>
+</HomeLayout>
