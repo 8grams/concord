@@ -10,8 +10,6 @@ import "../styles/global.css";
     <link rel="icon" href="/logo.png" />
     <title>Concord</title>
     <script>
-      import Alpine from "alpinejs";
-
       import "@xterm/xterm/css/xterm.css";
       import { Terminal } from "@xterm/xterm";
 
@@ -34,8 +32,6 @@ import "../styles/global.css";
       };
 
       (window as any).createTerminal = createTerminal;
-
-      Alpine.start();
     </script>
   </head>
   <body>

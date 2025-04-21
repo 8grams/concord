@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@astrojs/alpinejs':
+        specifier: ^0.4.6
+        version: 0.4.6(@types/alpinejs@3.13.11)(alpinejs@3.14.9)
       '@astrojs/node':
         specifier: ^9.2.0
         version: 9.2.0(astro@5.6.2(jiti@2.4.2)(lightningcss@1.29.2)(rollup@4.40.0)(typescript@5.8.3))
@@ -53,6 +56,12 @@ packages:
 
   '@antfu/utils@8.1.1':
     resolution: {integrity: sha512-Mex9nXf9vR6AhcXmMrlz/HVgYYZpVGJ6YlPgwl7UnaFpnshXs6EK/oa5Gpf3CzENMjkvEx2tQtntGnb7UtSTOQ==}
+
+  '@astrojs/alpinejs@0.4.6':
+    resolution: {integrity: sha512-uogG08bVN8ER8ANVAmfipUw3tZMk+SrZICtH5NMHmsDnSIuLSrXNa9+rCbAXHe/pbTfNUvlp5gE9jSxbd0KYFQ==}
+    peerDependencies:
+      '@types/alpinejs': ^3.0.0
+      alpinejs: ^3.0.0
 
   '@astrojs/compiler@2.11.0':
     resolution: {integrity: sha512-zZOO7i+JhojO8qmlyR/URui6LyfHJY6m+L9nwyX5GiKD78YoRaZ5tzz6X0fkl+5bD3uwlDHayf6Oe8Fu36RKNg==}
@@ -2190,6 +2199,11 @@ snapshots:
       tinyexec: 0.3.2
 
   '@antfu/utils@8.1.1': {}
+
+  '@astrojs/alpinejs@0.4.6(@types/alpinejs@3.13.11)(alpinejs@3.14.9)':
+    dependencies:
+      '@types/alpinejs': 3.13.11
+      alpinejs: 3.14.9
 
   '@astrojs/compiler@2.11.0': {}
 
