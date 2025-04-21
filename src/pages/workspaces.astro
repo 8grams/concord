@@ -18,6 +18,7 @@ const workspaces = await Db.getRepository(Workspace).find();
       <tr>
         <th>Name</th>
         <th>IaC URL</th>
+        <th>Status</th>
         <th></th>
       </tr>
     </thead>
@@ -27,6 +28,7 @@ const workspaces = await Db.getRepository(Workspace).find();
           <tr>
             <td>{workspace.name}</td>
             <td>{workspace.url}</td>
+            <td>{workspace.status}</td>
             <td class="w-1 whitespace-nowrap">
               <div class="inline-block" x-data>
                 <button
