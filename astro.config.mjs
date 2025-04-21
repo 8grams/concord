@@ -16,10 +16,6 @@ export default defineConfig({
   server: {
     host: true,
   },
-  experimental: {
-    svg: true,
-    session: true,
-  },
   session: {
     driver: "fs",
   },
