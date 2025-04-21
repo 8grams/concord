@@ -1,5 +1,23 @@
 ---
 import GraphLayout from "../layouts/GraphLayout.astro";
+import gitlog from "gitlog";
+
+const workspaceId = Astro.cookies.get("workspace")?.value;
+const repo = `data/workspace-${workspaceId}`;
+const logs = await gitlog({
+  repo,
+  all: true,
+  fields: [
+    "subject",
+    "authorName",
+    "authorDate",
+    "abbrevHash",
+    "hash",
+    "parentHashes",
+  ],
+  number: 999,
+});
+console.log(logs);
 ---
 
 <GraphLayout current="graph">
@@ -9,10 +27,22 @@ import GraphLayout from "../layouts/GraphLayout.astro";
   </script>
   <h1 class="font-bold text-lg">Commit Histories</h1>
   <div class="flex">
+    <pre class="mermaid">
+      gitGraph BT:
+        commit
+        commit
+        branch develop
+        checkout develop
+        commit
+        commit
+        checkout main
+        merge develop
+        commit
+        commit
+    </pre>
     <table class="table">
       <thead>
         <tr>
-          <th>Graph</th>
           <th>Description</th>
           <th>Date</th>
           <th>Author</th>
@@ -21,42 +51,21 @@ import GraphLayout from "../layouts/GraphLayout.astro";
         </tr>
       </thead>
       <tbody>
-        <tr>
-          <td rowspan="3">
-            <pre
-              class="mermaid">
-            gitGraph BT:
-              commit
-              commit
-              commit
-          </pre>
-          </td>
-          <td>cleanup</td>
-          <td>9 April 2025 18:90</td>
-          <td>Glend Maatita</td>
-          <td>123456</td>
-          <td>
-            <a href="/propose" class="btn">Propose</a>
-          </td>
-        </tr>
-        <tr>
-          <td>cleanup</td>
-          <td>9 April 2025 18:90</td>
-          <td>Glend Maatita</td>
-          <td>123456</td>
-          <td>
-            <a href="/propose" class="btn">Propose</a>
-          </td>
-        </tr>
-        <tr>
-          <td>cleanup</td>
-          <td>9 April 2025 18:90</td>
-          <td>Glend Maatita</td>
-          <td>123456</td>
-          <td>
-            <a href="/propose" class="btn">Propose</a>
-          </td>
-        </tr>
+        {
+          logs.map((log) => (
+            <tr>
+              <td>{log.subject}</td>
+              <td>{log.authorDate}</td>
+              <td>{log.authorName}</td>
+              <td>{log.abbrevHash}</td>
+              <td>
+                <a href="/propose" class="btn">
+                  Propose
+                </a>
+              </td>
+            </tr>
+          ))
+        }
       </tbody>
     </table>
   </div>
