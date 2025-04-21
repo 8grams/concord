@@ -24,9 +24,18 @@ export class Workspace extends BaseEntity {
   key: string;
 }
 
+@Entity()
+export class User extends BaseEntity {
+  @PrimaryGeneratedColumn("identity")
+  id: number;
+
+  @Column("text")
+  email: string;
+}
+
 export const Db = new DataSource({
   type: "better-sqlite3",
   database: "data/data.db",
   synchronize: true,
-  entities: [Workspace],
+  entities: [Workspace, User],
 });
