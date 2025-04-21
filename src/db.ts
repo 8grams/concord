@@ -20,8 +20,20 @@ export class Workspace extends BaseEntity {
   @Column("text")
   directory: string;
 
-  @Column("text")
-  key: string;
+  @Column("text", { nullable: true })
+  privateKey: string;
+
+  @Column("text", { nullable: true })
+  keyId: string;
+
+  @Column("text", { nullable: true })
+  keySecret: string;
+
+  @Column("text", { nullable: true })
+  status: string;
+
+  @Column("text", { nullable: true })
+  log: string;
 }
 
 @Entity()
