@@ -1,28 +1,53 @@
 ---
 import { Db, Workspace } from "../db";
+import { rm } from "node:fs";
+import { exec } from "node:child_process";
 
 if (Astro.request.method === "POST") {
   const repository = Db.getRepository(Workspace);
   const data = await Astro.request.formData();
-  const id = data.get("id");
+  const url = data.get("url") as string;
+  let id = data.get("id");
   if (id) {
     await repository.update(
       { id: parseInt(id as string) },
       {
         name: data.get("name") as string,
-        url: data.get("url") as string,
+        url,
         directory: data.get("directory") as string,
-        key: data.get("key") as string,
+        privateKey: data.get("privateKey") as string,
+        keyId: data.get("keyId") as string,
+        keySecret: data.get("keySecret") as string,
+        status: "Cloning",
       }
     );
   } else {
-    await repository.insert({
-      name: data.get("name") as string,
-      url: data.get("url") as string,
-      directory: data.get("directory") as string,
-      key: data.get("key") as string,
-    });
+    id = (
+      await repository.insert({
+        name: data.get("name") as string,
+        url,
+        directory: data.get("directory") as string,
+        privateKey: data.get("privateKey") as string,
+        keyId: data.get("keyId") as string,
+        keySecret: data.get("keySecret") as string,
+        status: "Cloning",
+      })
+    ).raw;
   }
+  rm(`data/workspace-${id}`, { recursive: true }, () => {
+    exec(
+      `git clone --filter=blob:none "${url}" data/workspace-${id}`,
+      (err, stdout, stderr) => {
+        repository.update(
+          { id: parseInt(id as string) },
+          {
+            status: err ? "Error" : "Cloned",
+            log: stdout + stderr,
+          }
+        );
+      }
+    );
+  });
   return Astro.redirect("/workspaces");
 }
 
@@ -73,10 +98,36 @@ const workspace: Workspace | null = id
         <textarea
           placeholder="Private Key"
           class="textarea textarea-md w-full"
-          name="key"
-        >
-          {workspace?.key}
-        </textarea>
+          name="privateKey"
+          set:text={workspace?.privateKey}
+        />
+      </label>
+      <label class="floating-label">
+        <span>Key ID</span>
+        <textarea
+          placeholder="Key ID"
+          class="textarea textarea-md w-full"
+          name="keyId"
+          set:text={workspace?.keyId}
+        />
+      </label>
+      <label class="floating-label">
+        <span>Key Secret</span>
+        <textarea
+          placeholder="Key Secret"
+          class="textarea textarea-md w-full"
+          name="keySecret"
+          set:text={workspace?.keySecret}
+        />
+      </label>
+      <label class="floating-label">
+        <span>Log</span>
+        <textarea
+          placeholder="Log"
+          class="textarea textarea-md w-full"
+          set:text={workspace?.log}
+          readonly
+        />
       </label>
       <div class="mt-4 flex gap-2">
         <button class="btn btn-primary">Save</button>
