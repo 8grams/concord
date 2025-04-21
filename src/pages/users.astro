@@ -1,0 +1,73 @@
+---
+import WorkspacesLayout from "../layouts/WorkspacesLayout.astro";
+import NewUser from "./new-user.astro";
+import DeleteUser from "./delete-user.astro";
+---
+
+<WorkspacesLayout current="users">
+  <div class="self-end" x-data>
+    <button class="btn" x-on:click="$refs.dialog.showModal()">Create</button>
+    <NewUser />
+  </div>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Email</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>glend@gmail.com</td>
+        <td class="w-1 whitespace-nowrap">
+          <div class="inline-block" x-data>
+            <button
+              class="btn btn-circle btn-ghost"
+              x-on:click="$refs.dialog.showModal()"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+              >
+                <!-- Icon from HeroIcons by Refactoring UI Inc - https://github.com/tailwindlabs/heroicons/blob/master/LICENSE -->
+                <path
+                  fill="currentColor"
+                  fill-rule="evenodd"
+                  d="M11.013 2.513a1.75 1.75 0 0 1 2.475 2.474L6.226 12.25a2.8 2.8 0 0 1-.892.596l-2.047.848a.75.75 0 0 1-.98-.98l.848-2.047a2.8 2.8 0 0 1 .596-.892z"
+                  clip-rule="evenodd"
+                >
+                </path>
+              </svg>
+            </button>
+            <NewUser />
+          </div>
+          <div class="inline-block" x-data>
+            <button
+              class="btn btn-circle btn-ghost"
+              x-on:click="$refs.dialog.showModal()"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+              >
+                <!-- Icon from HeroIcons by Refactoring UI Inc - https://github.com/tailwindlabs/heroicons/blob/master/LICENSE -->
+                <path
+                  fill="currentColor"
+                  fill-rule="evenodd"
+                  d="M5 3.25V4H2.75a.75.75 0 0 0 0 1.5h.3l.815 8.15A1.5 1.5 0 0 0 5.357 15h5.286a1.5 1.5 0 0 0 1.492-1.35l.815-8.15h.3a.75.75 0 0 0 0-1.5H11v-.75A2.25 2.25 0 0 0 8.75 1h-1.5A2.25 2.25 0 0 0 5 3.25m2.25-.75a.75.75 0 0 0-.75.75V4h3v-.75a.75.75 0 0 0-.75-.75zM6.05 6a.75.75 0 0 1 .787.713l.275 5.5a.75.75 0 0 1-1.498.075l-.275-5.5A.75.75 0 0 1 6.05 6m3.9 0a.75.75 0 0 1 .712.787l-.275 5.5a.75.75 0 0 1-1.498-.075l.275-5.5a.75.75 0 0 1 .786-.711"
+                  clip-rule="evenodd"
+                >
+                </path>
+              </svg>
+            </button>
+            <DeleteUser />
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</WorkspacesLayout>
