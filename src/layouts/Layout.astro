@@ -11,6 +11,30 @@ import "../styles/global.css";
     <title>Concord</title>
     <script>
       import Alpine from "alpinejs";
+
+      import "@xterm/xterm/css/xterm.css";
+      import { Terminal } from "@xterm/xterm";
+
+      const createTerminal = (element: HTMLElement) => {
+        const term = new Terminal({
+          convertEol: true,
+        });
+        term.open(element);
+        term.onData((data) => {
+          if (data.charCodeAt(0) === 127) {
+            term.write("\b \b");
+            return;
+          }
+          if (data === "\r") {
+            term.write("\n");
+            return;
+          }
+          term.write(data);
+        });
+      };
+
+      (window as any).createTerminal = createTerminal;
+
       Alpine.start();
     </script>
   </head>
