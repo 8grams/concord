@@ -1,0 +1,24 @@
+---
+if (Astro.request.method === "POST") {
+  return Astro.redirect("/workspaces");
+}
+---
+
+<dialog x-ref="dialog" class="modal">
+  <div class="modal-box w-sm">
+    <form class="flex flex-col gap-4" action="/delete-workspace" method="post">
+      <h1 class="text-lg font-bold">Delete Workspace</h1>
+      <div>Are you sure?</div>
+      <div class="mt-4 flex gap-2">
+        <button class="btn btn-primary">Yes</button>
+        <button
+          class="btn btn-secondary"
+          type="button"
+          x-on:click="$refs.dialog.close()"
+        >
+          No
+        </button>
+      </div>
+    </form>
+  </div>
+</dialog>
