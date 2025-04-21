@@ -12,10 +12,13 @@
     "@astrojs/node": "^9.2.0",
     "@tailwindcss/vite": "^4.1.4",
     "@types/alpinejs": "^3.13.11",
+    "@xterm/xterm": "^5.5.0",
     "alpinejs": "^3.14.9",
     "astro": "^5.6.2",
     "dotenv": "^16.5.0",
+    "install": "^0.13.0",
     "mermaid": "^11.6.0",
+    "npm": "^11.3.0",
     "tailwindcss": "^4.1.4"
   },
   "devDependencies": {
