@@ -2,22 +2,30 @@
 import GraphLayout from "../layouts/GraphLayout.astro";
 import gitlog from "gitlog";
 
+let graph = "gitGraph";
+let logs = [];
 const workspaceId = Astro.cookies.get("workspace")?.value;
 const repo = `data/workspace-${workspaceId}`;
-const logs = await gitlog({
-  repo,
-  all: true,
-  fields: [
-    "subject",
-    "authorName",
-    "authorDate",
-    "abbrevHash",
-    "hash",
-    "parentHashes",
-  ],
-  number: 999,
-});
-console.log(logs);
+try {
+  logs = await gitlog({
+    repo,
+    all: true,
+    fields: [
+      "subject",
+      "authorName",
+      "authorDate",
+      "abbrevHash",
+      "hash",
+      "parentHashes",
+    ],
+    number: 100,
+  });
+  graph = `
+    gitGraph TB:
+      ${logs.map((log) => `commit id: "${log.abbrevHash}"\n`).join("")}
+  `;
+} catch (error) {}
+
 ---
 
 <GraphLayout current="graph">
@@ -27,19 +35,7 @@ console.log(logs);
   </script>
   <h1 class="font-bold text-lg">Commit Histories</h1>
   <div class="flex">
-    <pre class="mermaid">
-      gitGraph BT:
-        commit
-        commit
-        branch develop
-        checkout develop
-        commit
-        commit
-        checkout main
-        merge develop
-        commit
-        commit
-    </pre>
+    <pre class="mermaid" set:html={graph} />
     <table class="table">
       <thead>
         <tr>
