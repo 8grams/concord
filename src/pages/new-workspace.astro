@@ -1,16 +1,52 @@
 ---
+import { Db, Workspace } from "../db";
+
 if (Astro.request.method === "POST") {
+  const repository = Db.getRepository(Workspace);
+  const data = await Astro.request.formData();
+  const id = data.get("id");
+  if (id) {
+    await repository.update(
+      { id: parseInt(id as string) },
+      {
+        name: data.get("name") as string,
+        url: data.get("url") as string,
+        directory: data.get("directory") as string,
+        key: data.get("key") as string,
+      }
+    );
+  } else {
+    await repository.insert({
+      name: data.get("name") as string,
+      url: data.get("url") as string,
+      directory: data.get("directory") as string,
+      key: data.get("key") as string,
+    });
+  }
   return Astro.redirect("/workspaces");
 }
+
+const { id } = Astro.props;
+
+const workspace: Workspace | null = id
+  ? await Db.getRepository(Workspace).findOneBy({ id })
+  : null;
 ---
 
 <dialog x-ref="dialog" class="modal">
   <div class="modal-box">
     <form class="flex flex-col gap-4" action="/new-workspace" method="post">
+      <input type="hidden" name="id" value={workspace?.id} />
       <h1 class="text-lg font-bold">Create New</h1>
       <label class="floating-label">
         <span>Name</span>
-        <input type="text" placeholder="Name" class="input input-md w-full" />
+        <input
+          type="text"
+          placeholder="Name"
+          class="input input-md w-full"
+          name="name"
+          value={workspace?.name}
+        />
       </label>
       <label class="floating-label">
         <span>IaC URL</span>
@@ -18,6 +54,8 @@ if (Astro.request.method === "POST") {
           type="text"
           placeholder="IaC URL"
           class="input input-md w-full"
+          name="url"
+          value={workspace?.url}
         />
       </label>
       <label class="floating-label">
@@ -26,11 +64,18 @@ if (Astro.request.method === "POST") {
           type="text"
           placeholder="Main Directory"
           class="input input-md w-full"
+          name="directory"
+          value={workspace?.directory}
         />
       </label>
       <label class="floating-label">
         <span>Private Key</span>
-        <textarea placeholder="Private Key" class="textarea textarea-md w-full">
+        <textarea
+          placeholder="Private Key"
+          class="textarea textarea-md w-full"
+          name="key"
+        >
+          {workspace?.key}
         </textarea>
       </label>
       <div class="mt-4 flex gap-2">

@@ -16,11 +16,13 @@
     "@xterm/xterm": "^5.5.0",
     "alpinejs": "^3.14.9",
     "astro": "^5.6.2",
+    "better-sqlite3": "^11.9.1",
     "dotenv": "^16.5.0",
     "install": "^0.13.0",
     "mermaid": "^11.6.0",
     "npm": "^11.3.0",
-    "tailwindcss": "^4.1.4"
+    "tailwindcss": "^4.1.4",
+    "typeorm": "^0.3.22"
   },
   "devDependencies": {
     "daisyui": "^5.0.19"
