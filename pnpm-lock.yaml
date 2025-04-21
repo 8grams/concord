@@ -38,6 +38,9 @@ importers:
       dotenv:
         specifier: ^16.5.0
         version: 16.5.0
+      gitlog:
+        specifier: ^5.1.0
+        version: 5.1.0
       install:
         specifier: ^0.13.0
         version: 0.13.0
@@ -1411,6 +1414,10 @@ packages:
 
   github-slugger@2.0.0:
     resolution: {integrity: sha512-IaOQ9puYtjrkq7Y0Ygl9KDZnrf/aiUJYUpVf89y8kyaxbRG7Y1SrX/jaumrv81vc61+kiMempujsM3Yw7w5qcw==}
+
+  gitlog@5.1.0:
+    resolution: {integrity: sha512-spyAYX1jeLGvK6mplNvlxb7zETa1DJTL7KKe9c8rwk6Tfmbju0cAk9VZuZx5xe4CkL3q/JkFHgP3eou/aV/31w==}
+    engines: {node: '>= 20.x'}
 
   glob@10.4.5:
     resolution: {integrity: sha512-7Bv8RF0k6xjo7d4A/PxYLbUCfb6c+Vpd2/mB2yRDlew7Jb5hEXiCD9ibfO7wpk8i4sevK6DFny9h7EYbM3/sHg==}
@@ -4160,6 +4167,12 @@ snapshots:
   github-from-package@0.0.0: {}
 
   github-slugger@2.0.0: {}
+
+  gitlog@5.1.0:
+    dependencies:
+      debug: 4.4.0
+    transitivePeerDependencies:
+      - supports-color
 
   glob@10.4.5:
     dependencies:
