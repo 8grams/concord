@@ -1,0 +1,27 @@
+---
+if (Astro.request.method === "POST") {
+  return Astro.redirect("/workspaces");
+}
+---
+
+<dialog x-ref="dialog" class="modal">
+  <div class="modal-box">
+    <form class="flex flex-col gap-4" action="/new-workspace" method="post">
+      <h1 class="text-lg font-bold">Add Eligible User Login</h1>
+      <label class="floating-label">
+        <span>Email</span>
+        <input type="email" placeholder="Email" class="input input-md w-full" />
+      </label>
+      <div class="mt-4 flex gap-2">
+        <button class="btn btn-primary">Save</button>
+        <button
+          class="btn btn-secondary"
+          type="button"
+          x-on:click="$refs.dialog.close()"
+        >
+          Cancel
+        </button>
+      </div>
+    </form>
+  </div>
+</dialog>
