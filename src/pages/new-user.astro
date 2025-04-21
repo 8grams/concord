@@ -1,16 +1,46 @@
 ---
+import { Db, User } from "../db";
+
 if (Astro.request.method === "POST") {
-  return Astro.redirect("/workspaces");
+  const repository = Db.getRepository(User);
+  const data = await Astro.request.formData();
+  const id = data.get("id");
+  if (id) {
+    await repository.update(
+      { id: parseInt(id as string) },
+      {
+        email: data.get("email") as string,
+      }
+    );
+  } else {
+    await repository.insert({
+      email: data.get("email") as string,
+    });
+  }
+  return Astro.redirect("/users");
 }
+
+const { id } = Astro.props;
+
+const user: User | null = id
+  ? await Db.getRepository(User).findOneBy({ id })
+  : null;
 ---
 
 <dialog x-ref="dialog" class="modal">
   <div class="modal-box">
-    <form class="flex flex-col gap-4" action="/new-workspace" method="post">
+    <form class="flex flex-col gap-4" action="/new-user" method="post">
+      <input type="hidden" name="id" value={user?.id} />
       <h1 class="text-lg font-bold">Add Eligible User Login</h1>
       <label class="floating-label">
         <span>Email</span>
-        <input type="email" placeholder="Email" class="input input-md w-full" />
+        <input
+          type="email"
+          placeholder="Email"
+          class="input input-md w-full"
+          name="email"
+          value={user?.email}
+        />
       </label>
       <div class="mt-4 flex gap-2">
         <button class="btn btn-primary">Save</button>
