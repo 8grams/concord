@@ -68,7 +68,7 @@ const workspaces = await Db.getRepository(Workspace).find();
                     />
                   </svg>
                 </button>
-                <DeleteWorkspace />
+                <DeleteWorkspace id={workspace.id} />
               </div>
             </td>
           </tr>

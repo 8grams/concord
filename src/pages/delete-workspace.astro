@@ -1,12 +1,21 @@
 ---
+import { Db, Workspace } from "../db";
+
 if (Astro.request.method === "POST") {
+  const repository = Db.getRepository(Workspace);
+  const data = await Astro.request.formData();
+  const id = data.get("id");
+  await repository.delete({ id: parseInt(id as string) });
   return Astro.redirect("/workspaces");
 }
+
+const { id } = Astro.props;
 ---
 
 <dialog x-ref="dialog" class="modal">
   <div class="modal-box w-sm">
     <form class="flex flex-col gap-4" action="/delete-workspace" method="post">
+      <input type="hidden" name="id" value={id} />
       <h1 class="text-lg font-bold">Delete Workspace</h1>
       <div>Are you sure?</div>
       <div class="mt-4 flex gap-2">
