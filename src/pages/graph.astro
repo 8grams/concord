@@ -1,68 +1,69 @@
 ---
 import GraphLayout from "../layouts/GraphLayout.astro";
-import gitlog from "gitlog";
+import { exec as execCPS } from "child_process";
+import { promisify } from "util";
 
-let graph = "gitGraph";
-let logs = [];
-const workspaceId = Astro.cookies.get("workspace")?.value;
-const repo = `data/workspace-${workspaceId}`;
-try {
-  logs = await gitlog({
-    repo,
-    all: true,
-    fields: [
-      "subject",
-      "authorName",
-      "authorDate",
-      "abbrevHash",
-      "hash",
-      "parentHashes",
-    ],
-    number: 100,
-  });
-  graph = `
-    gitGraph TB:
-      ${logs.map((log) => `commit id: "${log.abbrevHash}"\n`).join("")}
-  `;
-} catch (error) {}
+const exec = promisify(execCPS);
 
+const { stdout } = await exec(
+  `git log --graph --max-count=20 --skip=0 --pretty=format:"@%H %h %ad|%an|%s"`,
+  { cwd: "." }
+);
+
+const logs = stdout.split("\n").map((line) => {
+  const log = line.match(
+    /^(?<graph>.+?)@(?<hash>.+?)\s+(?<short>.+?)\s+(?<date>.+?)\|(?<name>.+?)\|(?<subject>.+?)$/
+  )?.groups as {
+    graph: string;
+    hash: string;
+    short: string;
+    date: string;
+    name: string;
+    subject: string;
+  };
+  if (!log) {
+    return line;
+  }
+  return log;
+});
+
+const graph = logs.map((log) => {
+  if (typeof log === "object") {
+    return log.graph;
+  }
+  return log;
+});
 ---
 
 <GraphLayout current="graph">
-  <script>
-    import mermaid from "mermaid";
-    mermaid.initialize({ startOnLoad: true });
-  </script>
-  <h1 class="font-bold text-lg">Commit Histories</h1>
-  <div class="flex">
-    <pre class="mermaid" set:html={graph} />
-    <table class="table">
-      <thead>
-        <tr>
-          <th>Description</th>
-          <th>Date</th>
-          <th>Author</th>
-          <th>Commit</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        {
-          logs.map((log) => (
+  <h1 class="font-bold text-lg mb-4">Commit Histories</h1>
+  <div class="flex gap-4">
+    <canvas id="canvas"></canvas>
+    <script id="graph" type="text/json" set:html={JSON.stringify(graph)} />
+    <script>
+      import { gitGraph } from "./_gitgraph";
+      gitGraph(
+        document.getElementById("canvas"),
+        JSON.parse(document.getElementById("graph").innerHTML)
+      );
+    </script>
+    <table class="git-table">
+      {
+        logs.map((log) =>
+          typeof log === "string" ? (
             <tr>
-              <td>{log.subject}</td>
-              <td>{log.authorDate}</td>
-              <td>{log.authorName}</td>
-              <td>{log.abbrevHash}</td>
-              <td>
-                <a href="/propose" class="btn">
-                  Propose
-                </a>
-              </td>
+              <td>&nbsp;</td>
             </tr>
-          ))
-        }
-      </tbody>
+          ) : (
+            <tr>
+              <td>{log.short}</td>
+              <td>{new Date(log.date).toLocaleDateString()}</td>
+              <td>{log.name}</td>
+              <td class="subject">{log.subject}</td>
+            </tr>
+          )
+        )
+      }
     </table>
   </div>
 </GraphLayout>
