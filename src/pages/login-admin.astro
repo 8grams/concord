@@ -2,6 +2,23 @@
 import Centered from "../components/Centered.astro";
 import Logo from "../components/Logo.astro";
 import Layout from "../layouts/Layout.astro";
+if (Astro.request.method === "POST") {
+  const data = await Astro.request.formData();
+  if (
+    data.get("username") === process.env.ADMIN_USERNAME &&
+    data.get("password") === process.env.ADMIN_PASSWORD
+  ) {
+    Astro.session.set("user", {
+      id: 0,
+      name: "Admin",
+      picture:
+        "https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp",
+    });
+    return Astro.redirect("/graph");
+  } else {
+    return Astro.redirect("/login-admin");
+  }
+}
 ---
 
 <Layout>
@@ -26,7 +43,7 @@ import Layout from "../layouts/Layout.astro";
           >
           </path>
         </svg>
-        <input placeholder="Username" type="text" autofocus />
+        <input placeholder="Username" name="username" type="text" autofocus />
       </label>
       <label class="input w-full">
         <svg
@@ -46,7 +63,7 @@ import Layout from "../layouts/Layout.astro";
           >
           </path>
         </svg>
-        <input placeholder="Password" type="password" />
+        <input placeholder="Password" name="password" type="password" />
       </label>
       <button class="btn w-full">Login</button>
     </form>

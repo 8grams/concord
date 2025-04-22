@@ -1,0 +1,39 @@
+---
+import { Db, User } from "../db";
+
+const { access_token } = await (
+  await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST",
+    body: JSON.stringify({
+      code: Astro.url.searchParams.get("code"),
+      client_id: process.env.GOOGLE_ID,
+      client_secret: process.env.GOOGLE_SECRET,
+      redirect_uri: `${Astro.url.origin}/google`,
+      grant_type: "authorization_code",
+    }),
+  })
+).json();
+
+console.log({ access_token });
+
+const { name, email, picture } = await (
+  await fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
+    headers: { Authorization: `Bearer ${access_token}` },
+  })
+).json();
+
+console.log({ name, email, picture });
+
+const user = await Db.getRepository(User).findOneBy({ email });
+if (!user) {
+  console.log("Unauthorized");
+  return Astro.redirect("/login?unauthorized");
+}
+Astro.session.set("user", {
+  id: user.id,
+  name,
+  picture,
+});
+console.log("OK");
+return Astro.redirect("/graph");
+---

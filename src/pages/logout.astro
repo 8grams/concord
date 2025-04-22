@@ -1,0 +1,8 @@
+---
+Astro.session.delete("user");
+if (Astro.locals.isAdmin) {
+  return Astro.redirect("/login-admin");
+} else {
+  return Astro.redirect("/login");
+}
+---
