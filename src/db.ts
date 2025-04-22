@@ -11,13 +11,13 @@ export class Workspace extends BaseEntity {
   @PrimaryGeneratedColumn("identity")
   id: number;
 
-  @Column("text")
+  @Column("text", { nullable: true })
   name: string;
 
-  @Column("text")
+  @Column("text", { nullable: true })
   url: string;
 
-  @Column("text")
+  @Column("text", { nullable: true })
   directory: string;
 
   @Column("text", { nullable: true })
@@ -41,7 +41,7 @@ export class User extends BaseEntity {
   @PrimaryGeneratedColumn("identity")
   id: number;
 
-  @Column("text")
+  @Column("text", { nullable: true })
   email: string;
 }
 
