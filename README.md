@@ -20,8 +20,7 @@
 | Backend    | Node.js    |
 | Frontend   | [Astro](https://astro.build/) + AlpineJS |
 | Styling    | [DaisyUI](https://github.com/8grams/astro-dashboard-template) |
-| Git Graph  | [MermaidJS](https://mermaid.js.org/) |
-| Git Parser | [gitlog](https://github.com/domharrington/node-gitlog) |
+| Git Graph  | [gitgraph.js](https://github.com/bluef/gitgraph.js) |
 
 ## 📸 Screenshots / Wireframes
 

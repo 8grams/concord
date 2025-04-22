@@ -33,7 +33,7 @@ export var gitGraph = function (canvas, rawGraphList, config) {
   if (typeof config === "undefined") {
     config = {
       unitSize: 20,
-      unitHeight: 30,
+      unitHeight: 40,
       lineWidth: 3,
       nodeRadius: 4,
     };

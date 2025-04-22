@@ -52,14 +52,19 @@ const graph = logs.map((log) => {
         logs.map((log) =>
           typeof log === "string" ? (
             <tr>
-              <td>&nbsp;</td>
+              <td style="line-height: 30px;">&nbsp;</td>
             </tr>
           ) : (
             <tr>
               <td>{log.short}</td>
-              <td>{new Date(log.date).toLocaleDateString()}</td>
+              <td style="line-height: 30px;">{new Date(log.date).toLocaleDateString()}</td>
               <td>{log.name}</td>
-              <td class="subject">{log.subject}</td>
+              <td>{log.subject}</td>
+              <td>
+                <a href="/propose" class="btn btn-sm mx-4">
+                  Propose
+                </a>
+              </td>
             </tr>
           )
         )
