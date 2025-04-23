@@ -1,6 +1,6 @@
 import "dotenv/config";
 import type { MiddlewareHandler } from "astro";
-import { Db } from "./db";
+import { admin, Db } from "./db";
 
 export const onRequest: MiddlewareHandler = async (Astro, next) => {
   const user = await Astro.session.get("user");
@@ -12,7 +12,7 @@ export const onRequest: MiddlewareHandler = async (Astro, next) => {
     if (["/login", "/google", "/login-admin"].includes(Astro.url.pathname)) {
       return Astro.redirect("/graph");
     } else {
-      const isAdmin = user.id === 0;
+      const isAdmin = user.email === admin.email;
       if (
         !isAdmin &&
         [
