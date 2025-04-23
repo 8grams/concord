@@ -89,7 +89,8 @@ const currentWorkspace = workspaces.find(
           class="dropdown-content card card-side bg-base-100 z-1 w-72 shadow-md"
         >
           <figure>
-            <img class="h-32" src={Astro.locals.user.picture} />
+            <!-- Fix too many request 😞 -->
+            <img class="h-32" src={`https://wsrv.nl/?url=${encodeURIComponent(Astro.locals.user.picture)}`} />
           </figure>
           <div class="card-body">
             <h2 class="card-title">{Astro.locals.user.name}</h2>
