@@ -18,6 +18,9 @@ export default defineConfig({
   },
   session: {
     driver: "fs",
+    options: {
+      base: './data/session'
+    }
   },
   middleware: true,
   integrations: [alpinejs()],
