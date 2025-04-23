@@ -1,7 +1,14 @@
 # Base image
 FROM node:23.11.0-slim AS base
 WORKDIR /app
-RUN apt-get update && apt-get install -y --no-install-recommends git ca-certificates libc6 build-essential python3 && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    git \
+    ca-certificates \
+    libc6 \
+    build-essential \
+    python3 && \
+    rm -rf /var/lib/apt/lists/*
 RUN update-ca-certificates
 RUN npm install --global --no-update-notifier --no-fund pnpm
 
