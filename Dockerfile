@@ -4,11 +4,27 @@ WORKDIR /app
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     git \
+    gnupg \
+    wget \
+    software-properties-common \
     ca-certificates \
     libc6 \
     build-essential \
-    python3 && \
-    rm -rf /var/lib/apt/lists/*
+    python3
+
+RUN wget -O- https://apt.releases.hashicorp.com/gpg | \
+    gpg --dearmor | \
+    tee /usr/share/keyrings/hashicorp-archive-keyring.gpg > /dev/null
+
+RUN echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] \
+    https://apt.releases.hashicorp.com $(lsb_release -cs) main" | \
+    tee /etc/apt/sources.list.d/hashicorp.list
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    terraform \
+    && rm -rf /var/lib/apt/lists/*
+
 RUN update-ca-certificates
 RUN npm install --global --no-update-notifier --no-fund pnpm
 
