@@ -3,6 +3,6 @@ if (Astro.request.method === "POST") {
   const data = await Astro.request.formData();
   const id = data.get("id");
   Astro.cookies.set("workspace", id);
-  return Astro.redirect(data.get("ref"));
+  return Astro.redirect("/graph");
 }
 ---
