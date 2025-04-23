@@ -18,17 +18,7 @@ import "../styles/global.css";
           convertEol: true,
         });
         term.open(element);
-        term.onData((data) => {
-          if (data.charCodeAt(0) === 127) {
-            term.write("\b \b");
-            return;
-          }
-          if (data === "\r") {
-            term.write("\n");
-            return;
-          }
-          term.write(data);
-        });
+        term.write("Hello world!");
       };
 
       (window as any).createTerminal = createTerminal;
