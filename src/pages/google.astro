@@ -14,26 +14,26 @@ const { access_token } = await (
   })
 ).json();
 
-console.log({ access_token });
-
 const { name, email, picture } = await (
   await fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
     headers: { Authorization: `Bearer ${access_token}` },
   })
 ).json();
 
-console.log({ name, email, picture });
-
 const user = await Db.getRepository(User).findOneBy({ email });
 if (!user) {
-  console.log("Unauthorized");
   return Astro.redirect("/login?unauthorized");
 }
+
+user.name = name;
+user.picture = picture;
+await user.save();
+
 Astro.session.set("user", {
-  id: user.id,
+  email,
   name,
   picture,
 });
-console.log("OK");
+
 return Astro.redirect("/graph");
 ---
