@@ -22,10 +22,6 @@
 | Styling    | [DaisyUI](https://github.com/8grams/astro-dashboard-template) |
 | Git Graph  | [gitgraph.js](https://github.com/bluef/gitgraph.js) |
 
-## 📸 Screenshots / Wireframes
-
-Check out our Miro board: [📌 Concord Miro Board](https://miro.com/app/board/uXjVLmDDkGQ=/)
-
 ## 🚀 Getting Started
 
 ### Prerequisites
