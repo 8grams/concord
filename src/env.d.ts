@@ -1,5 +1,5 @@
 type User = {
-  id: number; // 0 -> admin
+  email: string; // 0 -> admin
   name: string;
   picture: string;
 };
