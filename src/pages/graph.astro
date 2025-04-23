@@ -2,9 +2,24 @@
 import GraphLayout from "../layouts/GraphLayout.astro";
 import { exec as execCPS } from "child_process";
 import { promisify } from "util";
+import { Db, Proposal } from "../db";
+import { In } from "typeorm";
 
-let logs = [];
-let graph = [];
+const offset = parseInt(Astro.url.searchParams.get("offset") ?? "0");
+
+let logs: (
+  | {
+      graph: string;
+      hash: string;
+      short: string;
+      date: string;
+      name: string;
+      subject: string;
+      status?: Proposal["status"];
+    }
+  | string
+)[] = [];
+let graph: string[] = [];
 let error = null;
 
 try {
@@ -13,7 +28,7 @@ try {
   }
   const exec = promisify(execCPS);
   const { stdout } = await exec(
-    `git log --graph --max-count=20 --skip=0 --pretty=format:"@%H %h %ad|%an|%s"`,
+    `git log --graph --max-count=20 --skip=${offset} --pretty=format:"@%H %h %ad|%an|%s"`,
     { cwd: `data/workspace-${Astro.cookies.get("workspace")?.value}` }
   );
   logs = stdout.split("\n").map((line) => {
@@ -38,6 +53,21 @@ try {
     }
     return log;
   });
+  const proposals = await Db.getRepository(Proposal).findBy({
+    workspace: parseInt(Astro.cookies.get("workspace").value),
+    hash: In(
+      logs.filter((log) => typeof log === "object").map((log) => log.hash)
+    ),
+  });
+  logs = logs.map((log) => {
+    if (typeof log === "object") {
+      const proposal = proposals.find((proposal) => proposal.hash === log.hash);
+      if (proposal) {
+        log.status = proposal.status;
+      }
+    }
+    return log;
+  });
 } catch (err) {
   error = err;
 }
@@ -58,16 +88,21 @@ try {
             stroke-linejoin="round"
             stroke-width="2"
             d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
-          ></path>
+          />
         </svg>
         {error.message}
       </div>
     )
   }
   <h1 class="font-bold text-lg mb-4">Commit Histories</h1>
-  <div class="flex gap-4">
+  <div class="flex gap-4 mb-4">
     <canvas id="canvas"></canvas>
-    <script id="graph" type="text/json" set:html={JSON.stringify(graph)} />
+    <script
+      id="graph"
+      type="text/json"
+      is:inline
+      set:html={JSON.stringify(graph)}
+    />
     <script>
       import { gitGraph } from "./_gitgraph";
       gitGraph(
@@ -76,29 +111,49 @@ try {
       );
     </script>
     <table class="git-table">
-      {
-        logs.map((log) =>
-          typeof log === "string" ? (
-            <tr>
-              <td style="line-height: 30px;">&nbsp;</td>
-            </tr>
-          ) : (
-            <tr>
-              <td>{log.short}</td>
-              <td style="line-height: 30px;">
-                {new Date(log.date).toLocaleDateString()}
-              </td>
-              <td>{log.name}</td>
-              <td>{log.subject}</td>
-              <td>
-                <a href="/propose" class="btn btn-sm mx-4">
-                  Propose
-                </a>
-              </td>
-            </tr>
+      <tbody>
+        {
+          logs.map((log) =>
+            typeof log === "string" ? (
+              <tr>
+                <td style="line-height: 30px;">&nbsp;</td>
+              </tr>
+            ) : (
+              <tr>
+                <td class="px-2">{log.short}</td>
+                <td class="px-2" style="line-height: 30px;">
+                  {new Date(log.date).toLocaleDateString()}
+                </td>
+                <td class="px-2">{log.name}</td>
+                <td class="px-2">{log.subject}</td>
+                <td class="px-2">
+                  {!log.status && (
+                    <form action="/new-proposal" method="post">
+                      <input type="hidden" name="hash" value={log.hash} />
+                      <button class="btn btn-sm">Propose</button>
+                    </form>
+                  )}
+                  {log.status && (
+                    <a class="btn btn-sm" href={`/proposal?hash=${log.hash}`}>
+                      {log.status}
+                    </a>
+                  )}
+                </td>
+              </tr>
+            )
           )
-        )
-      }
+        }
+      </tbody>
     </table>
+  </div>
+  <div class="flex gap-2">
+    {
+      offset > 0 && (
+        <a class="btn" href={`?offset=${offset - 20}`}>
+          Previous
+        </a>
+      )
+    }
+    <a class="btn" href={`?offset=${offset + 20}`}>Next</a>
   </div>
 </GraphLayout>
