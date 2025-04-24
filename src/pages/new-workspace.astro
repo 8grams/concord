@@ -67,7 +67,7 @@ if (Astro.request.method === "POST") {
     );
     unlinkSync(tempKeyPath);
   });
-  
+
   return Astro.redirect("/workspaces");
 }
 
@@ -79,14 +79,14 @@ const workspace: Workspace | null = id
 ---
 
 <script>
-import Alpine from "alpinejs";
+  import Alpine from "alpinejs";
 
-  document.addEventListener('alpine:init', () => {
-    Alpine.data('envManager', () => ({
+  document.addEventListener("alpine:init", () => {
+    Alpine.data("envManager", () => ({
       envVariables: [], // Initialize envVariables to avoid errors
 
       addEnvVariable() {
-        this.envVariables.push({ key: '', value: '' });
+        this.envVariables.push({ key: "", value: "" });
       },
 
       removeEnvVariable(index) {
@@ -165,9 +165,21 @@ import Alpine from "alpinejs";
                   class="btn btn-error btn-xs"
                   x-on:click="removeEnvVariable(index)"
                 >
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                </svg>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M6 18L18 6M6 6l12 12"
+                    >
+                    </path>
+                  </svg>
                 </button>
               </div>
             </template>
@@ -176,8 +188,20 @@ import Alpine from "alpinejs";
               class="btn btn-secondary btn-sm mt-2"
               x-on:click="addEnvVariable"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M12 4v16m8-8H4"
+                >
+                </path>
               </svg>
             </button>
           </div>
