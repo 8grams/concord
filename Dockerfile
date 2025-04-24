@@ -46,7 +46,7 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./
 
-RUN cd node_modules/better-sqlite3 && pnpm run build-release
+RUN cd node_modules/better-sqlite3 && pnpm run build-release && pnpm prune --prod
 
 USER node
 EXPOSE 4321
