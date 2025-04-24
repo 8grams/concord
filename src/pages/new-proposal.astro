@@ -1,15 +1,42 @@
 ---
-import { Db, Proposal } from "../db";
+import { Db, Proposal, Workspace } from "../db";
+import { tmpdir } from "os";
+import { exec } from "node:child_process";
+import { join } from "path";
+import { writeFileSync, chmodSync, unlinkSync, mkdirSync } from "fs";
+import { decrypt } from "../utils/crypto";
 
 const data = await Astro.request.formData();
-
 const hash = data.get("hash") as string;
 
-await Db.getRepository(Proposal).insert({
-  workspace: parseInt(Astro.cookies.get("workspace").value),
+const workspaceId = parseInt(Astro.cookies.get("workspace").value)
+const workspace = await Db.getRepository(Workspace).findOne({ where: { id: workspaceId } });
+
+const tempKeyPath = join(tmpdir(), `tempkey-${Date.now()}`);
+writeFileSync(tempKeyPath, decrypt(workspace?.privateKey));
+chmodSync(tempKeyPath, 0o600);
+
+exec(
+  `GIT_SSH_COMMAND="ssh -i ${tempKeyPath} -o IdentitiesOnly=yes -o StrictHostKeyChecking=no" git clone --filter=blob:none "${url}" data/repositories/${id}`,
+  (err, stdout, stderr) => {
+    repository.update(
+      { id: parseInt(id as string) },
+      {
+        status: err ? "Error" : "Cloned",
+        log: stdout + stderr,
+      }
+    );
+  }
+);
+
+const id = (await Db.getRepository(Proposal).insert({
+  workspace: workspaceId,
   hash,
   status: "On Review",
-});
+})).raw;
+
+
 
 return Astro.redirect(`/proposal?hash=${hash}`);
 ---
+e8d5

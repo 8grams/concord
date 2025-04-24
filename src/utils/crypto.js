@@ -14,6 +14,10 @@ export function encrypt(text) {
 }
 
 export function decrypt(text) {
+  if (!text) {
+    return null;
+  }
+
   const [ivHex, encrypted] = text.split(":");
   const decipher = crypto.createDecipheriv(
     encryptionAlgorithm,
