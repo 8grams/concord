@@ -6,17 +6,6 @@ import path from "path";
 import hcl from "hcl2-parser";
 import { parser } from "./_type-parser";
 
-if (Astro.request.method === "POST") {
-  const data = await Astro.request.formData();
-  switch (data.get("action")) {
-    case "Save":
-      console.log(Array.from(data.entries()))
-      break;
-    case "Propose":
-      break;
-  }
-}
-
 const workspaceId = parseInt(Astro.cookies.get("workspace").value);
 const workspace = await Db.getRepository(Workspace).findOneBy({
   id: workspaceId,
@@ -28,10 +17,61 @@ if (!workspace) {
 
 const gitRepo = `data/repositories/${workspaceId}`;
 
-// get content string of tfvars file
 const tfVarsFile = path.resolve(
   `${gitRepo}/${workspace.mainDirectory}/terraform.tfvars`
 );
+
+let config: string | null = null;
+
+if (Astro.request.method === "POST") {
+  const data = await Astro.request.formData();
+  switch (data.get("action")) {
+    case "Save":
+      config = "";
+      for (let [key, value] of data.entries()) {
+        if (key === "action") {
+          continue;
+        }
+        value = JSON.parse(value as string);
+        config += `${key} = `;
+        if (Array.isArray(value)) {
+          config += `[\n`;
+          let next = false;
+          for (let element of value) {
+            if (next) {
+              config += `,\n`;
+            } else {
+              next = true;
+            }
+            if (typeof element === "object") {
+              config += `  {\n`;
+              for (let key in element) {
+                config += `    ${key} = ${JSON.stringify(element[key])}\n`;
+              }
+              config += `  }`;
+            } else {
+              config += `  ${JSON.stringify(element)}`;
+            }
+          }
+          config += `\n]`;
+        } else if (typeof value === "object") {
+          config += `{\n`;
+          for (let key in value) {
+            config += `  ${key} = ${JSON.stringify(value[key])}\n`;
+          }
+          config += `}`;
+        } else {
+          config += JSON.stringify(value);
+        }
+        config += `\n`;
+      }
+      fs.writeFileSync(tfVarsFile, config);
+      return Astro.redirect("/update");
+    case "Propose":
+      break;
+  }
+}
+// get content string of tfvars file
 const tfVarsDefinitionFile = path.resolve(
   `${gitRepo}/${workspace.mainDirectory}/variables.tf`
 );
@@ -43,6 +83,7 @@ const tfVarDefinitionParsed = hcl.parseToObject(tfVarDefinitionContent);
 ---
 
 <GraphLayout current="update">
+  <pre>{config}</pre>
   <form class="flex flex-col gap-4 py-4" method="post">
     {
       Object.entries(tfVarsParsed[0]).map(([key, value]) => {
