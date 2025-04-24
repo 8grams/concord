@@ -83,7 +83,6 @@ const tfVarDefinitionParsed = hcl.parseToObject(tfVarDefinitionContent);
 ---
 
 <GraphLayout current="update">
-  <pre>{config}</pre>
   <form class="flex flex-col gap-4 py-4" method="post">
     {
       Object.entries(tfVarsParsed[0]).map(([key, value]) => {
