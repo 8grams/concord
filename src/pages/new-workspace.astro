@@ -5,7 +5,7 @@ import { tmpdir } from "os";
 import { join } from "path";
 import { writeFileSync, chmodSync, unlinkSync, mkdirSync } from "fs";
 import { Db, Workspace } from "../db";
-import { encrypt } from "../utils/encrypt";
+import { decrypt, encrypt } from "../utils/encrypt";
 
 if (Astro.request.method === "POST") {
   const repository = Db.getRepository(Workspace);
@@ -85,6 +85,10 @@ const workspace: Workspace | null = id
     Alpine.data("envManager", () => ({
       envVariables: [], // Initialize envVariables to avoid errors
 
+      init() {
+        this.envVariables = JSON.parse(this.$el.dataset.value) ?? [];
+      },
+
       addEnvVariable() {
         this.envVariables.push({ key: "", value: "" });
       },
@@ -140,7 +144,15 @@ const workspace: Workspace | null = id
           set:text={workspace?.privateKey}
         />
       </label>
-      <div x-data="envManager">
+      <div
+        x-data="envManager"
+        data-value={JSON.stringify(
+          workspace?.envVars?.map(({ key, value }) => ({
+            key,
+            value: decrypt(value),
+          })) ?? null
+        )}
+      >
         <label>
           <span>Environment Variables</span>
           <div class="env-variables space-y-4">
