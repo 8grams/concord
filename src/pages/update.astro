@@ -46,7 +46,7 @@ const tfVarDefinitionParsed = hcl.parseToObject(tfVarDefinitionContent);
           <div class="flex">
             <div class="grow flex flex-col">
               <div>{key}</div>
-              <div class="text-sm">{tfVarDefinitionParsed[0].variable[key].description}</div>
+              <div class="text-sm">{tfVarDefinitionParsed[0].variable[key][0].description}</div>
             </div>
             <input class="input" type="text" name={key} value={value as string} />
           </div>
