@@ -1,15 +1,16 @@
 ---
 import { Db, Workspace } from "../db";
 import GraphLayout from "../layouts/GraphLayout.astro";
-import fs from 'fs';
-import path from 'path';
+import fs from "fs";
+import path from "path";
 import hcl from "hcl2-parser";
-
+import { parser } from "./_type-parser";
 
 if (Astro.request.method === "POST") {
   const data = await Astro.request.formData();
   switch (data.get("action")) {
     case "Save":
+      console.log(Array.from(data.entries()))
       break;
     case "Propose":
       break;
@@ -28,29 +29,213 @@ if (!workspace) {
 const gitRepo = `data/repositories/${workspaceId}`;
 
 // get content string of tfvars file
-const tfVarsFile = path.resolve(`${gitRepo}/${workspace.mainDirectory}/terraform.tfvars`);
-const tfVarsDefinitionFile = path.resolve(`${gitRepo}/${workspace.mainDirectory}/variables.tf`);
-const tfVarContent = fs.readFileSync(tfVarsFile, 'utf-8');
-const tfVarDefinitionContent = fs.readFileSync(tfVarsDefinitionFile, 'utf-8');
+const tfVarsFile = path.resolve(
+  `${gitRepo}/${workspace.mainDirectory}/terraform.tfvars`
+);
+const tfVarsDefinitionFile = path.resolve(
+  `${gitRepo}/${workspace.mainDirectory}/variables.tf`
+);
+const tfVarContent = fs.readFileSync(tfVarsFile, "utf-8");
+const tfVarDefinitionContent = fs.readFileSync(tfVarsDefinitionFile, "utf-8");
 
 const tfVarsParsed = hcl.parseToObject(tfVarContent);
 const tfVarDefinitionParsed = hcl.parseToObject(tfVarDefinitionContent);
-
 ---
 
 <GraphLayout current="update">
   <form class="flex flex-col gap-4 py-4" method="post">
     {
       Object.entries(tfVarsParsed[0]).map(([key, value]) => {
+        const def = tfVarDefinitionParsed[0].variable[key][0];
+        const type = parser.parse(def.type.substring(2, def.type.length - 1));
         return (
-          <div class="flex">
+          <div class="flex border-b pb-4 border-b-base-300">
             <div class="grow flex flex-col">
               <div>{key}</div>
-              <div class="text-sm">{tfVarDefinitionParsed[0].variable[key][0].description}</div>
+              <div class="text-sm">{def.description}</div>
             </div>
-            <input class="input" type="text" name={key} value={value as string} />
+            <div
+              x-data="{ 
+                type: JSON.parse($el.dataset.type),
+                value: JSON.parse($el.dataset.value),
+              }"
+              data-type={JSON.stringify(type)}
+              data-value={JSON.stringify(value)}
+            >
+              <input
+                type="hidden"
+                name={key}
+                x-bind:value="JSON.stringify(value)"
+              />
+              {/* Bool */}
+              <template x-if="type.tag === 'bool'">
+                <input class="checkbox" type="checkbox" x-model="value" />
+              </template>
+              {/* Number */}
+              <template x-if="type.tag === 'number'">
+                <input class="input" type="number" x-model="value" />
+              </template>
+              {/* String */}
+              <template x-if="type.tag === 'string'">
+                <input class="input" type="text" x-model="value" />
+              </template>
+              {/* List(String) */}
+              <template x-if="type.tag === 'list' && type.type.tag === 'string'">
+                <div class="flex flex-col gap-2">
+                  <button
+                    type="button"
+                    class="btn btn-ghost btn-circle self-end"
+                    x-on:click="value.push('')"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 16 16"
+                    >
+                      <path
+                        fill="currentColor"
+                        d="M8.75 3.75a.75.75 0 0 0-1.5 0v3.5h-3.5a.75.75 0 0 0 0 1.5h3.5v3.5a.75.75 0 0 0 1.5 0v-3.5h3.5a.75.75 0 0 0 0-1.5h-3.5z"
+                      />
+                    </svg>
+                  </button>
+                  <template x-for="(item, index) in value">
+                    <div class="flex gap-2 items-center bg-base-200 p-2 rounded">
+                      <input class="input" type="text" x-model="value[index]" />
+                      <button
+                        type="button"
+                        class="btn btn-ghost btn-circle self-end"
+                        x-on:click="value.splice(index, 1)"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="16"
+                          height="16"
+                          viewBox="0 0 16 16"
+                        >
+                          <path
+                            fill="currentColor"
+                            fill-rule="evenodd"
+                            d="M5 3.25V4H2.75a.75.75 0 0 0 0 1.5h.3l.815 8.15A1.5 1.5 0 0 0 5.357 15h5.286a1.5 1.5 0 0 0 1.492-1.35l.815-8.15h.3a.75.75 0 0 0 0-1.5H11v-.75A2.25 2.25 0 0 0 8.75 1h-1.5A2.25 2.25 0 0 0 5 3.25m2.25-.75a.75.75 0 0 0-.75.75V4h3v-.75a.75.75 0 0 0-.75-.75zM6.05 6a.75.75 0 0 1 .787.713l.275 5.5a.75.75 0 0 1-1.498.075l-.275-5.5A.75.75 0 0 1 6.05 6m3.9 0a.75.75 0 0 1 .712.787l-.275 5.5a.75.75 0 0 1-1.498-.075l.275-5.5a.75.75 0 0 1 .786-.711"
+                            clip-rule="evenodd"
+                          />
+                        </svg>
+                      </button>
+                    </div>
+                  </template>
+                </div>
+              </template>
+              {/* Map(String) */}
+              <template x-if="type.tag === 'map' && type.type.tag === 'string'">
+                <div
+                  class="flex flex-col gap-2"
+                  x-data="{ array: Object.entries(value) }"
+                  x-effect="value = Object.fromEntries(array)"
+                >
+                  <button
+                    type="button"
+                    class="btn btn-ghost btn-circle self-end"
+                    x-on:click="array.push(['', ''])"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 16 16"
+                    >
+                      <path
+                        fill="currentColor"
+                        d="M8.75 3.75a.75.75 0 0 0-1.5 0v3.5h-3.5a.75.75 0 0 0 0 1.5h3.5v3.5a.75.75 0 0 0 1.5 0v-3.5h3.5a.75.75 0 0 0 0-1.5h-3.5z"
+                      />
+                    </svg>
+                  </button>
+                  <template x-for="(item, index) in array">
+                    <div class="flex gap-2 items-center bg-base-200 p-2 rounded">
+                      <input class="input" type="text" x-model="item[0]" />
+                      <input class="input" type="text" x-model="item[1]" />
+                      <button
+                        type="button"
+                        class="btn btn-ghost btn-circle self-end"
+                        x-on:click="array.splice(index, 1)"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="16"
+                          height="16"
+                          viewBox="0 0 16 16"
+                        >
+                          <path
+                            fill="currentColor"
+                            fill-rule="evenodd"
+                            d="M5 3.25V4H2.75a.75.75 0 0 0 0 1.5h.3l.815 8.15A1.5 1.5 0 0 0 5.357 15h5.286a1.5 1.5 0 0 0 1.492-1.35l.815-8.15h.3a.75.75 0 0 0 0-1.5H11v-.75A2.25 2.25 0 0 0 8.75 1h-1.5A2.25 2.25 0 0 0 5 3.25m2.25-.75a.75.75 0 0 0-.75.75V4h3v-.75a.75.75 0 0 0-.75-.75zM6.05 6a.75.75 0 0 1 .787.713l.275 5.5a.75.75 0 0 1-1.498.075l-.275-5.5A.75.75 0 0 1 6.05 6m3.9 0a.75.75 0 0 1 .712.787l-.275 5.5a.75.75 0 0 1-1.498-.075l.275-5.5a.75.75 0 0 1 .786-.711"
+                            clip-rule="evenodd"
+                          />
+                        </svg>
+                      </button>
+                    </div>
+                  </template>
+                </div>
+              </template>
+              {/* List(Object) */}
+              <template x-if="type.tag === 'list' && type.type.tag === 'object'">
+                <div class="flex flex-col gap-2">
+                  <button
+                    type="button"
+                    class="btn btn-ghost btn-circle self-end"
+                    x-on:click="value.push({})"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 16 16"
+                    >
+                      <path
+                        fill="currentColor"
+                        d="M8.75 3.75a.75.75 0 0 0-1.5 0v3.5h-3.5a.75.75 0 0 0 0 1.5h3.5v3.5a.75.75 0 0 0 1.5 0v-3.5h3.5a.75.75 0 0 0 0-1.5h-3.5z"
+                      />
+                    </svg>
+                  </button>
+                  <template x-for="(item, index) in value">
+                    <div class="flex gap-2 items-center rounded bg-base-200 p-2">
+                      <div class="flex flex-col gap-2">
+                        <template x-for="prop in type.type.props">
+                          <div class="flex items-center gap-2">
+                            <label class="label" x-text="prop.name" />
+                            <input
+                              class="input"
+                              type="text"
+                              x-model="item[prop.name]"
+                            />
+                          </div>
+                        </template>
+                      </div>
+                      <button
+                        type="button"
+                        class="btn btn-ghost btn-circle self-end"
+                        x-on:click="value.splice(index, 1)"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="16"
+                          height="16"
+                          viewBox="0 0 16 16"
+                        >
+                          <path
+                            fill="currentColor"
+                            fill-rule="evenodd"
+                            d="M5 3.25V4H2.75a.75.75 0 0 0 0 1.5h.3l.815 8.15A1.5 1.5 0 0 0 5.357 15h5.286a1.5 1.5 0 0 0 1.492-1.35l.815-8.15h.3a.75.75 0 0 0 0-1.5H11v-.75A2.25 2.25 0 0 0 8.75 1h-1.5A2.25 2.25 0 0 0 5 3.25m2.25-.75a.75.75 0 0 0-.75.75V4h3v-.75a.75.75 0 0 0-.75-.75zM6.05 6a.75.75 0 0 1 .787.713l.275 5.5a.75.75 0 0 1-1.498.075l-.275-5.5A.75.75 0 0 1 6.05 6m3.9 0a.75.75 0 0 1 .712.787l-.275 5.5a.75.75 0 0 1-1.498-.075l.275-5.5a.75.75 0 0 1 .786-.711"
+                            clip-rule="evenodd"
+                          />
+                        </svg>
+                      </button>
+                    </div>
+                  </template>
+                </div>
+              </template>
+            </div>
           </div>
-        )
+        );
       })
     }
     <div class="flex gap-2 mt-4">
