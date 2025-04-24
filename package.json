@@ -19,6 +19,7 @@
     "astro": "^5.6.2",
     "better-sqlite3": "^11.9.1",
     "dotenv": "^16.5.0",
+    "hcl2-parser": "^1.0.3",
     "install": "^0.13.0",
     "npm": "^11.3.0",
     "tailwindcss": "^4.1.4",

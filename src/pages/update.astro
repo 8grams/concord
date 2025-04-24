@@ -1,5 +1,10 @@
 ---
+import { Db, Workspace } from "../db";
 import GraphLayout from "../layouts/GraphLayout.astro";
+import fs from 'fs';
+import path from 'path';
+import hcl from "hcl2-parser";
+
 
 if (Astro.request.method === "POST") {
   const data = await Astro.request.formData();
@@ -11,47 +16,46 @@ if (Astro.request.method === "POST") {
   }
 }
 
-const rows = [
-  {
-    key: "bastion_instance_type",
-    description: "The name of the key pair to use for the VM instance",
-    type: "text",
-    value: "ecs.g6.large",
-  },
-  {
-    key: "bastion_instance_type",
-    description: "The name of the key pair to use for the VM instance",
-    type: "text",
-    value: "ecs.g6.large",
-  },
-  {
-    key: "bastion_instance_type",
-    description: "The name of the key pair to use for the VM instance",
-    type: "text",
-    value: "ecs.g6.large",
-  },
-];
+const workspaceId = parseInt(Astro.cookies.get("workspace").value);
+const workspace = await Db.getRepository(Workspace).findOneBy({
+  id: workspaceId,
+});
+
+if (!workspace) {
+  throw new Error("Workspace not found");
+}
+
+const gitRepo = `data/repositories/${workspaceId}`;
+
+// get content string of tfvars file
+const tfVarsFile = path.resolve(`${gitRepo}/${workspace.mainDirectory}/terraform.tfvars`);
+const tfVarsDefinitionFile = path.resolve(`${gitRepo}/${workspace.mainDirectory}/variables.tf`);
+const tfVarContent = fs.readFileSync(tfVarsFile, 'utf-8');
+const tfVarDefinitionContent = fs.readFileSync(tfVarsDefinitionFile, 'utf-8');
+
+const tfVarsParsed = hcl.parseToObject(tfVarContent);
+const tfVarDefinitionParsed = hcl.parseToObject(tfVarDefinitionContent);
+
 ---
 
 <GraphLayout current="update">
-  <h1 class="font-bold text-lg">Variables</h1>
   <form class="flex flex-col gap-4 py-4" method="post">
     {
-      rows.map((row) => (
-        <div class="flex">
-          <div class="grow flex flex-col">
-            <div>{row.key}</div>
-            <div class="text-sm">{row.description}</div>
+      Object.entries(tfVarsParsed[0]).map(([key, value]) => {
+        return (
+          <div class="flex">
+            <div class="grow flex flex-col">
+              <div>{key}</div>
+              <div class="text-sm">{tfVarDefinitionParsed[0].variable[key].description}</div>
+            </div>
+            <input class="input" type="text" name={key} value={value as string} />
           </div>
-          {row.type === "text" && (
-            <input class="input" type="text" name={row.key} value={row.value} />
-          )}
-        </div>
-      ))
+        )
+      })
     }
     <div class="flex gap-2 mt-4">
       <button class="btn btn-primary" name="action" value="Save">Save</button>
-      <button class="btn btn-secondary" name="action" value="Propose">
+      <button class="btn btn-accent" name="action" value="Propose">
         Propose
       </button>
     </div>

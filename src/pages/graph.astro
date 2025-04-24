@@ -24,12 +24,12 @@ let error = null;
 
 try {
   if (!Astro.cookies.get("workspace")) {
-    throw new Error("No workspace");
+    throw new Error(". Go to Setting page and create a Workspace first.");
   }
   const exec = promisify(execCPS);
   const { stdout } = await exec(
     `git log --graph --max-count=20 --skip=${offset} --pretty=format:"@%H %h %ad|%an|%s"`,
-    { cwd: `data/workspace-${Astro.cookies.get("workspace")?.value}` }
+    { cwd: `data/repositories/${Astro.cookies.get("workspace")?.value}` }
   );
   logs = stdout.split("\n").map((line) => {
     const log = line.match(

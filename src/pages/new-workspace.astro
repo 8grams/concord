@@ -1,24 +1,36 @@
 ---
-import { Db, Workspace } from "../db";
 import { rm } from "node:fs";
 import { exec } from "node:child_process";
+import { tmpdir } from "os";
+import { join } from "path";
+import { writeFileSync, chmodSync, unlinkSync, mkdirSync } from "fs";
+import { Db, Workspace } from "../db";
+import { encrypt } from "../utils/encrypt";
 
 if (Astro.request.method === "POST") {
   const repository = Db.getRepository(Workspace);
   const data = await Astro.request.formData();
   const url = data.get("url") as string;
   let id = data.get("id");
+
+  const envKeys = data.getAll("envKeys[]");
+  const envValues = data.getAll("envValues[]");
+  const envVariables = envKeys.map((key, index) => ({
+    key: key as string,
+    value: encrypt(envValues[index] as string),
+  }));
+
+  const privateKey = data.get("privateKey") as string;
+
   if (id) {
     await repository.update(
       { id: parseInt(id as string) },
       {
         name: data.get("name") as string,
         url,
-        directory: data.get("directory") as string,
-        privateKey: data.get("privateKey") as string,
-        keyId: data.get("keyId") as string,
-        keySecret: data.get("keySecret") as string,
+        privateKey: encrypt(privateKey),
         status: "Cloning",
+        envVars: envVariables,
       }
     );
   } else {
@@ -26,17 +38,23 @@ if (Astro.request.method === "POST") {
       await repository.insert({
         name: data.get("name") as string,
         url,
-        directory: data.get("directory") as string,
-        privateKey: data.get("privateKey") as string,
-        keyId: data.get("keyId") as string,
-        keySecret: data.get("keySecret") as string,
+        mainDirectory: data.get("mainDirectory") as string,
+        privateKey: encrypt(privateKey),
         status: "Cloning",
+        envVars: envVariables,
       })
     ).raw;
   }
-  rm(`data/workspace-${id}`, { recursive: true }, () => {
+
+  mkdirSync(`data/repositories`, { recursive: true });
+
+  rm(`data/repositories/${id}`, { recursive: true }, () => {
+    const tempKeyPath = join(tmpdir(), `tempkey-${Date.now()}`);
+    writeFileSync(tempKeyPath, privateKey);
+    chmodSync(tempKeyPath, 0o600);
+
     exec(
-      `git clone --filter=blob:none "${url}" data/workspace-${id}`,
+      `GIT_SSH_COMMAND="ssh -i ${tempKeyPath} -o IdentitiesOnly=yes -o StrictHostKeyChecking=no" git clone --filter=blob:none "${url}" data/repositories/${id}`,
       (err, stdout, stderr) => {
         repository.update(
           { id: parseInt(id as string) },
@@ -47,7 +65,9 @@ if (Astro.request.method === "POST") {
         );
       }
     );
+    unlinkSync(tempKeyPath);
   });
+  
   return Astro.redirect("/workspaces");
 }
 
@@ -58,11 +78,29 @@ const workspace: Workspace | null = id
   : null;
 ---
 
+<script>
+import Alpine from "alpinejs";
+
+  document.addEventListener('alpine:init', () => {
+    Alpine.data('envManager', () => ({
+      envVariables: [], // Initialize envVariables to avoid errors
+
+      addEnvVariable() {
+        this.envVariables.push({ key: '', value: '' });
+      },
+
+      removeEnvVariable(index) {
+        this.envVariables.splice(index, 1);
+      },
+    }));
+  });
+</script>
+
 <dialog x-ref="dialog" class="modal">
   <div class="modal-box">
     <form class="flex flex-col gap-4" action="/new-workspace" method="post">
       <input type="hidden" name="id" value={workspace?.id} />
-      <h1 class="text-lg font-bold">Create New</h1>
+      <h1 class="text-lg font-bold">New Workspace</h1>
       <label class="floating-label">
         <span>Name</span>
         <input
@@ -74,10 +112,10 @@ const workspace: Workspace | null = id
         />
       </label>
       <label class="floating-label">
-        <span>IaC URL</span>
+        <span>Terraform URL</span>
         <input
           type="text"
-          placeholder="IaC URL"
+          placeholder="Terraform URL (e.g git@github.com:example/my-terraform.git)"
           class="input input-md w-full"
           name="url"
           value={workspace?.url}
@@ -89,46 +127,62 @@ const workspace: Workspace | null = id
           type="text"
           placeholder="Main Directory"
           class="input input-md w-full"
-          name="directory"
-          value={workspace?.directory}
+          name="mainDirectory"
+          value={workspace?.mainDirectory}
         />
       </label>
       <label class="floating-label">
-        <span>Private Key</span>
+        <span>SSH Git Private Key</span>
         <textarea
-          placeholder="Private Key"
+          placeholder="SSH Git Private Key"
           class="textarea textarea-md w-full"
           name="privateKey"
           set:text={workspace?.privateKey}
         />
       </label>
-      <label class="floating-label">
-        <span>Key ID</span>
-        <textarea
-          placeholder="Key ID"
-          class="textarea textarea-md w-full"
-          name="keyId"
-          set:text={workspace?.keyId}
-        />
-      </label>
-      <label class="floating-label">
-        <span>Key Secret</span>
-        <textarea
-          placeholder="Key Secret"
-          class="textarea textarea-md w-full"
-          name="keySecret"
-          set:text={workspace?.keySecret}
-        />
-      </label>
-      <label class="floating-label">
-        <span>Log</span>
-        <textarea
-          placeholder="Log"
-          class="textarea textarea-md w-full"
-          set:text={workspace?.log}
-          readonly
-        />
-      </label>
+      <div x-data="envManager">
+        <label>
+          <span>Environment Variables</span>
+          <div class="env-variables space-y-4">
+            <template x-for="(env, index) in envVariables" :key="index">
+              <div class="flex gap-2 items-center">
+                <input
+                  type="text"
+                  placeholder="Key"
+                  class="input input-md w-1/2"
+                  x-model="env.key"
+                  name="envKeys[]"
+                />
+                <input
+                  type="text"
+                  placeholder="Value"
+                  class="input input-md w-1/2"
+                  x-model="env.value"
+                  name="envValues[]"
+                />
+                <button
+                  type="button"
+                  class="btn btn-error btn-xs"
+                  x-on:click="removeEnvVariable(index)"
+                >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                </button>
+              </div>
+            </template>
+            <button
+              type="button"
+              class="btn btn-secondary btn-sm mt-2"
+              x-on:click="addEnvVariable"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+              </svg>
+            </button>
+          </div>
+        </label>
+      </div>
       <div class="mt-4 flex gap-2">
         <button class="btn btn-primary">Save</button>
         <button

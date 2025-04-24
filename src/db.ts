@@ -21,16 +21,10 @@ export class Workspace extends BaseEntity {
   url: string;
 
   @Column("text", { nullable: true })
-  directory: string;
+  mainDirectory: string;
 
   @Column("text", { nullable: true })
   privateKey: string;
-
-  @Column("text", { nullable: true })
-  keyId: string;
-
-  @Column("text", { nullable: true })
-  keySecret: string;
 
   @Column("text", { nullable: true })
   status: string;
@@ -39,7 +33,7 @@ export class Workspace extends BaseEntity {
   log: string;
 
   @Column("json", { nullable: true })
-  headers: { key: string; value: string }[];
+  envVars: { key: string; value: string }[];
 }
 
 @Entity()

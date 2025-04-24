@@ -54,13 +54,13 @@ const comments = await Db.getRepository(Comment).find({
     {
       proposal.status === "On Review" && (
         <form class="flex gap-4" method="post">
-          <button class="btn" name="action" value="Approve">
+          <button class="btn btn-primary" name="action" value="Approve">
             Approve
           </button>
-          <button class="btn" name="action" value="Reject">
+          <button class="btn btn-error" name="action" value="Reject">
             Reject
           </button>
-          <button class="btn" name="action" value="Run">
+          <button class="btn btn-accent" name="action" value="Run">
             Run Plan
           </button>
         </form>

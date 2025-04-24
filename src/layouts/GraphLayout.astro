@@ -7,7 +7,7 @@ const { current } = Astro.props;
 <HomeLayout>
   <div class="tabs tabs-border tabs-lg">
     <a class="tab" href="/graph" class:list={[current === "graph" && "tab-active"]}>Graph</a>
-    <a class="tab" href="/update" class:list={[current === "update" && "tab-active"]}>Update</a>
+    <a class="tab" href="/update" class:list={[current === "update" && "tab-active"]}>Variables</a>
   </div>
   <div class="p-4">
     <slot />
