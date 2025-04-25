@@ -57,8 +57,8 @@ if (Astro.request.method === "POST") {
     chmodSync(tempKeyPath, 0o600);
 
     exec(
-    `git clone --filter=blob:none "${url}" data/repositories/${id}`,
-      // `GIT_SSH_COMMAND="ssh -i ${tempKeyPath} -o IdentitiesOnly=yes -o StrictHostKeyChecking=no" git clone --filter=blob:none "${url}" data/repositories/${id}`,
+    //`git clone --filter=blob:none "${url}" data/repositories/${id}`,
+      `GIT_SSH_COMMAND="ssh -i ${tempKeyPath} -o IdentitiesOnly=yes -o StrictHostKeyChecking=no" git clone --filter=blob:none "${url}" data/repositories/${id}`,
       (err, stdout, stderr) => {
         repository.update(
           { id: parseInt(id as string) },
