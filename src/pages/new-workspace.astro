@@ -20,7 +20,7 @@ if (Astro.request.method === "POST") {
     value: encrypt(envValues[index] as string),
   }));
 
-  const privateKey = data.get("privateKey") as string;
+  const privateKey = (data.get("privateKey") as string).replace(/\r\n/g, "\n");
 
   if (id) {
     await repository.update(
@@ -57,9 +57,10 @@ if (Astro.request.method === "POST") {
     chmodSync(tempKeyPath, 0o600);
 
     exec(
-    //`git clone --filter=blob:none "${url}" data/repositories/${id}`,
+      //`git clone --filter=blob:none "${url}" data/repositories/${id}`,
       `GIT_SSH_COMMAND="ssh -i ${tempKeyPath} -o IdentitiesOnly=yes -o StrictHostKeyChecking=no" git clone --filter=blob:none "${url}" data/repositories/${id}`,
       (err, stdout, stderr) => {
+        unlinkSync(tempKeyPath);
         repository.update(
           { id: parseInt(id as string) },
           {
@@ -69,7 +70,6 @@ if (Astro.request.method === "POST") {
         );
       }
     );
-    unlinkSync(tempKeyPath);
   });
 
   return Astro.redirect("/workspaces");
