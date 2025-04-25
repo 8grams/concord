@@ -15,6 +15,7 @@ if (Astro.request.method === "POST") {
   const body = await Astro.request.formData();
   switch (body.get("action")) {
     case "Approve":
+      // run terraform apply -auto-approve
       proposal.status = "Applied";
       await proposal.save();
       break;
@@ -23,14 +24,14 @@ if (Astro.request.method === "POST") {
       await proposal.save();
       break;
     case "Plan":
-      
+      // run terraform plan
       break;
     case "Comment":
       await Db.getRepository(Comment).insert({
         workspace: workspace.id,
         hash,
-        user: Astro.locals.user.email as any,
-        message: body.get("message") as string,
+        user: Astro.locals.user.id as any,
+        message: body.get("message") as string
       });
       break;
   }
@@ -92,7 +93,7 @@ const comments = await Db.getRepository(Comment).find({
                   <img src={`https://wsrv.nl/?url=${encodeURIComponent(comment.user.picture)}`} />
                 </div>
               </div>
-              <div class="font-bold">{comment.user.name}</div>
+              <div><span class="font-bold">{comment.user.name}</span> <span class="text-sm text-gray-500">{comment.createdAt.toLocaleString()}</span></div>
             </div>
             <div>{comment.message}</div>
           </li>

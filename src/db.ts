@@ -1,11 +1,11 @@
 import {
   BaseEntity,
   Column,
+  CreateDateColumn,
   DataSource,
   Entity,
   JoinColumn,
   ManyToOne,
-  PrimaryColumn,
   PrimaryGeneratedColumn
 } from "typeorm";
 
@@ -92,6 +92,9 @@ export class Comment extends BaseEntity {
 
   @Column("text", { nullable: true })
   message: string;
+
+  @CreateDateColumn()
+  createdAt: Date;
 }
 
 export const Db = new DataSource({
