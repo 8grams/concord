@@ -11,7 +11,7 @@ import {
 
 @Entity()
 export class Workspace extends BaseEntity {
-  @PrimaryGeneratedColumn("identity")
+  @PrimaryGeneratedColumn("increment")
   id: number;
 
   @Column("text", { nullable: true })
@@ -41,7 +41,7 @@ export class Workspace extends BaseEntity {
 
 @Entity()
 export class User extends BaseEntity {
-  @PrimaryGeneratedColumn("identity")
+  @PrimaryGeneratedColumn("increment")
   id: number;
 
   @Column("text")
@@ -56,7 +56,7 @@ export class User extends BaseEntity {
 
 @Entity()
 export class Proposal extends BaseEntity {
-  @PrimaryGeneratedColumn("identity")
+  @PrimaryGeneratedColumn("increment")
   id: number;
 
   @Column("int")
@@ -80,7 +80,7 @@ export class Proposal extends BaseEntity {
 
 @Entity()
 export class Comment extends BaseEntity {
-  @PrimaryGeneratedColumn("identity")
+  @PrimaryGeneratedColumn("increment")
   id: number;
 
   @Column("int")
