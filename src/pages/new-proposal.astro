@@ -9,8 +9,10 @@ import { decrypt } from "../utils/crypto";
 const data = await Astro.request.formData();
 const hash = data.get("hash") as string;
 
-const workspaceId = parseInt(Astro.cookies.get("workspace").value)
-const workspace = await Db.getRepository(Workspace).findOne({ where: { id: workspaceId } });
+const workspaceId = parseInt(Astro.cookies.get("workspace").value);
+const workspace = await Db.getRepository(Workspace).findOne({
+  where: { id: workspaceId },
+});
 
 const tempKeyPath = join(tmpdir(), `tempkey-${Date.now()}`);
 writeFileSync(tempKeyPath, decrypt(workspace?.privateKey));
@@ -18,36 +20,34 @@ chmodSync(tempKeyPath, 0o600);
 const repository = Db.getRepository(Proposal);
 const branch = `proposal-${hash.slice(0, 6)}`;
 
-const execPromise = new Promise((resolve, reject) => {
+await new Promise((resolve, reject) => {
   exec(
-    `cd data/repositories/${workspaceId} && \
-     git checkout ${hash} && \
-     git checkout -b ${branch} && \
-     GIT_SSH_COMMAND="ssh -i ${tempKeyPath} \
-      -o IdentitiesOnly=yes \
-      -o StrictHostKeyChecking=no" \
-      git push origin ${branch}`,
+    `GIT_SSH_COMMAND="ssh -i ${tempKeyPath} -o IdentitiesOnly=yes -o StrictHostKeyChecking=no" git checkout ${hash} && git checkout -b ${branch} && GIT_SSH_COMMAND="ssh -i ${tempKeyPath} -o IdentitiesOnly=yes -o StrictHostKeyChecking=no" git push origin ${branch}`,
+    { cwd: `data/repositories/${workspaceId}` },
     (err, stdout, stderr) => {
       if (err) {
         unlinkSync(tempKeyPath);
         reject(err);
         return;
       }
-      
-      repository.insert({
-        workspace: workspaceId,
-        hash,
-        status: "On Review",
-        branch: branch,
-      });
 
-      unlinkSync(tempKeyPath);
-      resolve(stdout);
+      repository
+        .insert({
+          workspace: workspaceId,
+          hash,
+          status: "On Review",
+          branch: branch,
+        })
+        .then(() => {
+          unlinkSync(tempKeyPath);
+          resolve(stdout);
+        })
+        .catch(reject);
     }
   );
 });
 
-await execPromise;
 return Astro.redirect(`/proposal?hash=${hash}`);
 ---
+
 e8d5
