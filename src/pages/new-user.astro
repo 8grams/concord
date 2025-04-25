@@ -4,10 +4,10 @@ import { Db, User } from "../db";
 if (Astro.request.method === "POST") {
   const repository = Db.getRepository(User);
   const data = await Astro.request.formData();
-  const id = data.get("id");
+  const id = parseInt(data.get("id") as string);
   if (id) {
     await repository.update(
-      { id: parseInt(id as string) },
+      id,
       {
         email: data.get("email") as string,
       }
@@ -23,7 +23,7 @@ if (Astro.request.method === "POST") {
 const { id } = Astro.props;
 
 const user: User | null = id
-  ? await Db.getRepository(User).findOneBy({ id })
+  ? await Db.getRepository(User).findOneBy(id)
   : null;
 ---
 

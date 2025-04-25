@@ -21,6 +21,9 @@ export class Workspace extends BaseEntity {
   url: string;
 
   @Column("text", { nullable: true })
+  mainBranch: string;
+
+  @Column("text", { nullable: true })
   mainDirectory: string;
 
   @Column("text", { nullable: true })
@@ -38,7 +41,10 @@ export class Workspace extends BaseEntity {
 
 @Entity()
 export class User extends BaseEntity {
-  @PrimaryColumn("text")
+  @PrimaryGeneratedColumn("identity")
+  id: number;
+
+  @Column("text")
   email: string;
 
   @Column("text", { nullable: true })
@@ -50,11 +56,17 @@ export class User extends BaseEntity {
 
 @Entity()
 export class Proposal extends BaseEntity {
-  @PrimaryColumn("int")
+  @PrimaryGeneratedColumn("identity")
+  id: number;
+
+  @Column("int")
   workspace: number;
 
-  @PrimaryColumn("text")
+  @Column("text")
   hash: string;
+
+  @Column("text")
+  branch: string;
 
   @Column("text", { nullable: true })
   status: "On Review" | "Applied" | "Rejected";
@@ -72,7 +84,7 @@ export class Comment extends BaseEntity {
   hash: string;
 
   @ManyToOne(() => User)
-  @JoinColumn({ name: "user", referencedColumnName: "email" })
+  @JoinColumn({ name: "user", referencedColumnName: "id" })
   user: User;
 
   @Column("text", { nullable: true })
@@ -87,6 +99,7 @@ export const Db = new DataSource({
 });
 
 export const admin = {
+  id: 10001,
   email: "admin@admin",
   name: "Admin",
   picture:

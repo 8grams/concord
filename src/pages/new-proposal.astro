@@ -3,7 +3,7 @@ import { Db, Proposal, Workspace } from "../db";
 import { tmpdir } from "os";
 import { exec } from "node:child_process";
 import { join } from "path";
-import { writeFileSync, chmodSync, unlinkSync, mkdirSync } from "fs";
+import { writeFileSync, chmodSync, unlinkSync } from "fs";
 import { decrypt } from "../utils/crypto";
 
 const data = await Astro.request.formData();
@@ -15,28 +15,39 @@ const workspace = await Db.getRepository(Workspace).findOne({ where: { id: works
 const tempKeyPath = join(tmpdir(), `tempkey-${Date.now()}`);
 writeFileSync(tempKeyPath, decrypt(workspace?.privateKey));
 chmodSync(tempKeyPath, 0o600);
+const repository = Db.getRepository(Proposal);
+const branch = `proposal-${hash.slice(0, 6)}`;
 
-exec(
-  `GIT_SSH_COMMAND="ssh -i ${tempKeyPath} -o IdentitiesOnly=yes -o StrictHostKeyChecking=no" git clone --filter=blob:none "${url}" data/repositories/${id}`,
-  (err, stdout, stderr) => {
-    repository.update(
-      { id: parseInt(id as string) },
-      {
-        status: err ? "Error" : "Cloned",
-        log: stdout + stderr,
+const execPromise = new Promise((resolve, reject) => {
+  exec(
+    `cd data/repositories/${workspaceId} && \
+     git checkout ${hash} && \
+     git checkout -b ${branch} && \
+     GIT_SSH_COMMAND="ssh -i ${tempKeyPath} \
+      -o IdentitiesOnly=yes \
+      -o StrictHostKeyChecking=no" \
+      git push origin ${branch}`,
+    (err, stdout, stderr) => {
+      if (err) {
+        unlinkSync(tempKeyPath);
+        reject(err);
+        return;
       }
-    );
-  }
-);
+      
+      repository.insert({
+        workspace: workspaceId,
+        hash,
+        status: "On Review",
+        branch: branch,
+      });
 
-const id = (await Db.getRepository(Proposal).insert({
-  workspace: workspaceId,
-  hash,
-  status: "On Review",
-})).raw;
+      unlinkSync(tempKeyPath);
+      resolve(stdout);
+    }
+  );
+});
 
-
-
+await execPromise;
 return Astro.redirect(`/proposal?hash=${hash}`);
 ---
 e8d5

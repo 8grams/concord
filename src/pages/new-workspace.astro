@@ -28,6 +28,7 @@ if (Astro.request.method === "POST") {
       {
         name: data.get("name") as string,
         mainDirectory: data.get("mainDirectory") as string,
+        mainBranch: data.get("mainBranch") as string,
         url,
         privateKey: encrypt(privateKey),
         status: "Cloning",
@@ -40,6 +41,7 @@ if (Astro.request.method === "POST") {
         name: data.get("name") as string,
         url,
         mainDirectory: data.get("mainDirectory") as string,
+        mainBranch: data.get("mainBranch") as string,
         privateKey: encrypt(privateKey),
         status: "Cloning",
         envVars: envVariables,
@@ -135,6 +137,16 @@ const workspace: Workspace | null = id
           class="input input-md w-full"
           name="mainDirectory"
           value={workspace?.mainDirectory}
+        />
+      </label>
+      <label class="floating-label">
+        <span>Main Branch</span>
+        <input
+          type="text"
+          placeholder="Main Branch"
+          class="input input-md w-full"
+          name="mainBranch"
+          value={workspace?.mainBranch}
         />
       </label>
       <label class="floating-label">

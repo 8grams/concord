@@ -2,7 +2,8 @@
 import GraphLayout from "../layouts/GraphLayout.astro";
 import { exec as execCPS } from "child_process";
 import { promisify } from "util";
-import { Db, Proposal } from "../db";
+import { Db, Proposal, Workspace } from "../db";
+import { getCommitURL } from "../utils/helper";
 import { In } from "typeorm";
 
 const offset = parseInt(Astro.url.searchParams.get("offset") ?? "0");
@@ -21,12 +22,23 @@ let logs: (
 )[] = [];
 let graph: string[] = [];
 let error = null;
+let workspace: Workspace | null = null;
 
 try {
   if (!Astro.cookies.get("workspace")) {
-    throw new Error(". Go to Setting page and create a Workspace first.");
+    throw new Error("No workspace selected. Go to Setting page and create a Workspace first.");
   }
+
+  const workspaceId = Astro.cookies.get("workspace")?.value;
+  workspace = await Db.getRepository(Workspace).findOneBy({ id: parseInt(workspaceId) });
   const exec = promisify(execCPS);
+
+  // checkout to main branch
+  await exec(
+    `git checkout ${workspace?.mainBranch}`,
+    { cwd: `data/repositories/${Astro.cookies.get("workspace")?.value}` }
+  );
+
   const { stdout } = await exec(
     `git log --graph --max-count=20 --skip=${offset} --pretty=format:"@%H %h %ad|%an|%s"`,
     { cwd: `data/repositories/${Astro.cookies.get("workspace")?.value}` }
@@ -69,7 +81,7 @@ try {
     return log;
   });
 } catch (err) {
-  error = err;
+  error = "Something went wrong.";
 }
 ---
 
@@ -90,7 +102,7 @@ try {
             d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
           />
         </svg>
-        {error.message}
+        {error}
       </div>
     )
   }
@@ -120,7 +132,7 @@ try {
               </tr>
             ) : (
               <tr>
-                <td class="px-2">{log.short}</td>
+                <td class="px-2" style={{ textDecoration: "underline" }}><a href={getCommitURL(workspace?.url, log.short)} target="_blank">{log.short}</a></td>
                 <td class="px-2" style="line-height: 30px;">
                   {new Date(log.date).toLocaleDateString()}
                 </td>

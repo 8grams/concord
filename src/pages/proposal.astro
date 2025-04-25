@@ -1,12 +1,13 @@
 ---
-import { Db, Proposal as ProposalTable, Comment } from "../db";
+import { Db, Proposal as ProposalTable, Comment, Workspace } from "../db";
 import HomeLayout from "../layouts/HomeLayout.astro";
 
-const workspace = parseInt(Astro.cookies.get("workspace").value);
+const workspaceId = parseInt(Astro.cookies.get("workspace").value);
+const workspace = await Db.getRepository(Workspace).findOneBy({ id: workspaceId });
 const hash = Astro.url.searchParams.get("hash");
 
 const proposal = await Db.getRepository(ProposalTable).findOneBy({
-  workspace,
+  workspace: workspace.id,
   hash,
 });
 
@@ -21,12 +22,12 @@ if (Astro.request.method === "POST") {
       proposal.status = "Rejected";
       await proposal.save();
       break;
-    case "Run":
-      // TODO
+    case "Plan":
+      
       break;
     case "Comment":
       await Db.getRepository(Comment).insert({
-        workspace,
+        workspace: workspace.id,
         hash,
         user: Astro.locals.user.email as any,
         message: body.get("message") as string,
@@ -38,7 +39,7 @@ if (Astro.request.method === "POST") {
 
 const comments = await Db.getRepository(Comment).find({
   where: {
-    workspace,
+    workspace: workspace.id,
     hash,
   },
   relations: {
@@ -60,7 +61,7 @@ const comments = await Db.getRepository(Comment).find({
           <button class="btn btn-error" name="action" value="Reject">
             Reject
           </button>
-          <button class="btn btn-accent" name="action" value="Run">
+          <button class="btn btn-accent" name="action" value="Plan">
             Run Plan
           </button>
         </form>

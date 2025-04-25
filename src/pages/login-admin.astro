@@ -10,7 +10,7 @@ if (Astro.request.method === "POST") {
     data.get("username") === process.env.ADMIN_USERNAME &&
     data.get("password") === process.env.ADMIN_PASSWORD
   ) {
-    await Db.getRepository(User).upsert(admin, ["email"]);
+    await Db.getRepository(User).upsert(admin, ["id"]);
     Astro.session.set("user", admin);
     return Astro.redirect("/graph");
   } else {
