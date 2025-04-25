@@ -70,6 +70,9 @@ export class Proposal extends BaseEntity {
 
   @Column("text", { nullable: true })
   status: "On Review" | "Applied" | "Rejected";
+
+  @Column("text", { nullable: true })
+  planOutput: string;
 }
 
 @Entity()
