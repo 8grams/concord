@@ -73,6 +73,9 @@ export class Proposal extends BaseEntity {
 
   @Column("text", { nullable: true })
   planOutput: string;
+
+  @CreateDateColumn()
+  createdAt: Date;
 }
 
 @Entity()

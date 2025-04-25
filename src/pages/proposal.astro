@@ -1,6 +1,7 @@
 ---
 import { Db, Proposal as ProposalTable, Comment, Workspace } from "../db";
 import HomeLayout from "../layouts/HomeLayout.astro";
+import { getBranchURL } from "../utils/helper";
 
 const workspaceId = parseInt(Astro.cookies.get("workspace").value);
 const workspace = await Db.getRepository(Workspace).findOneBy({ id: workspaceId });
@@ -53,6 +54,24 @@ const comments = await Db.getRepository(Comment).find({
   <div class="p-4 flex flex-col gap-4">
     <a href="/graph" class="btn self-start">Back</a>
     <h1 class="font-bold text-lg">Proposal</h1>
+    <div class="flex flex-col gap-2 p-4 bg-base-200 rounded-lg">
+      <div class="flex items-center gap-2">
+        <span class="font-medium">Status:</span>
+        <span class={`badge ${
+          proposal.status === 'On Review' ? 'badge-primary' : 
+          proposal.status === 'Applied' ? 'badge-success' : 
+          'badge-error'
+        }`}>{proposal.status}</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="font-medium">Branch:</span>
+        <span class="text-base-content/80" style={{ textDecoration: "underline" }}><a href={getBranchURL(workspace.url, proposal.branch)} target="_blank">{proposal.branch}</a></span>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="font-medium">Created at:</span>
+        <span class="text-base-content/80">{proposal.createdAt.toLocaleString()}</span>
+      </div>
+    </div>
     {
       proposal.status === "On Review" && (
         <form class="flex gap-4" method="post">
@@ -68,9 +87,10 @@ const comments = await Db.getRepository(Comment).find({
         </form>
       )
     }
+
     <div class="rounded overflow-hidden" x-init="window.createTerminal($el)">
     </div>
-    <h1 class="font-bold text-lg">Discussion</h1>
+    <h1 class="font-bold text-lg">Discussions</h1>
     <form
       class="p-4 border border-base-300 bg-base-200 flex flex-col gap-4"
       method="post"
@@ -79,7 +99,7 @@ const comments = await Db.getRepository(Comment).find({
       <div class="flex">
         <div class="grow"></div>
         <button class="btn btn-primary" name="action" value="Comment">
-          Post Comment
+          Post
         </button>
       </div>
     </form>

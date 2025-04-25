@@ -5,6 +5,7 @@ import fs from "fs";
 import path from "path";
 import hcl from "hcl2-parser";
 import { parser } from "./_type-parser";
+import { execSync } from "child_process";
 
 const workspaceId = parseInt(Astro.cookies.get("workspace").value);
 const workspace = await Db.getRepository(Workspace).findOneBy({
@@ -22,6 +23,12 @@ const tfVarsFile = path.resolve(
 );
 
 let config: string | null = null;
+
+// sync git
+execSync(`
+  cd data/repositories/${workspaceId} && \
+  git pull origin ${workspace.mainBranch}
+`);
 
 if (Astro.request.method === "POST") {
   const data = await Astro.request.formData();
@@ -65,7 +72,22 @@ if (Astro.request.method === "POST") {
         }
         config += `\n`;
       }
+      
+      // sync git
+      execSync(`
+        cd data/repositories/${workspaceId} && \
+        git pull origin ${workspace.mainBranch}
+      `);
       fs.writeFileSync(tfVarsFile, config);
+
+      // update git
+      execSync(`
+        cd data/repositories/${workspaceId} &&
+        git add . && \
+        git commit -m "Update terraform.tfvars" && \
+        git push origin ${workspace.mainBranch}
+      `);
+
       return Astro.redirect("/update");
     case "Propose":
       break;

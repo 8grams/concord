@@ -142,12 +142,15 @@ try {
                   {!log.status && (
                     <form action="/new-proposal" method="post">
                       <input type="hidden" name="hash" value={log.hash} />
-                      <button class="btn btn-sm">Propose</button>
+                      <button class="btn btn-sm btn-accent">Propose</button>
                     </form>
                   )}
                   {log.status && (
-                    <a class="btn btn-sm" href={`/proposal?hash=${log.hash}`}>
-                      {log.status}
+                    <a class={`btn btn-sm ${
+                      log.status === 'On Review' ? 'btn-info' : 
+                      log.status === 'Applied' ? 'btn-success' : 
+                      'btn-error'}`} 
+                      href={`/proposal?hash=${log.hash}`}>{log.status}
                     </a>
                   )}
                 </td>
