@@ -24,6 +24,8 @@ export class Workspace extends BaseEntity {
   mainBranch: string;
 
   @Column("text", { nullable: true })
+  currentBranch: string;
+  @Column("text", { nullable: true })
   mainDirectory: string;
 
   @Column("text", { nullable: true })
@@ -64,6 +66,9 @@ export class Proposal extends BaseEntity {
 
   @Column("text")
   hash: string;
+
+  @Column("text")
+  sourceBranch: string;
 
   @Column("text")
   branch: string;

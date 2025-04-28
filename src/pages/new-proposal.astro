@@ -14,11 +14,13 @@ const workspace = await Db.getRepository(Workspace).findOne({
   where: { id: workspaceId },
 });
 
+const currentBranch = Astro.cookies.get("currentBranch").value ?? workspace?.mainBranch as string;
+
 const tempKeyPath = join(tmpdir(), `tempkey-${Date.now()}`);
 writeFileSync(tempKeyPath, decrypt(workspace?.privateKey));
 chmodSync(tempKeyPath, 0o600);
 const repository = Db.getRepository(Proposal);
-const branch = `proposal-${hash.slice(0, 6)}`;
+const branch = `concordproposal-${hash.slice(0, 6)}`;
 
 await new Promise((resolve, reject) => {
   exec(
@@ -37,6 +39,7 @@ await new Promise((resolve, reject) => {
           hash,
           status: "On Review",
           branch: branch,
+          sourceBranch: currentBranch,
         })
         .then(() => {
           unlinkSync(tempKeyPath);

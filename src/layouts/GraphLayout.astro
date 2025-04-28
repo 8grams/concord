@@ -1,10 +1,84 @@
 ---
 import HomeLayout from "./HomeLayout.astro";
+import { exec as execCPS } from "child_process";
+import { promisify } from "util";
+import { Db, Workspace } from "../db";
 
 const { current } = Astro.props;
+
+const workspaceRepository = Db.getRepository(Workspace);
+
+const selectedBranch = Astro.url.searchParams.get("branch") ?? null;
+let branches: string[] = [];
+let workspace: Workspace | null = null;
+
+try {
+  if (Astro.cookies.get("workspace")) {
+    const workspaceId = Astro.cookies.get("workspace")?.value;
+    workspace = await workspaceRepository.findOneBy({ id: parseInt(workspaceId) });
+    const exec = promisify(execCPS);
+
+    // Get list of branches
+    const { stdout: branchesStdout } = await exec(
+      `git branch --format="%(refname:short)"`,
+      { cwd: `data/repositories/${Astro.cookies.get("workspace")?.value}` }
+    );
+    branches = branchesStdout
+      .split("\n")
+      .filter(branch => branch.trim() !== "" && !branch.startsWith("concordproposal"));
+
+    const currentBranch = Astro.cookies.get("currentBranch")?.value ?? workspace?.currentBranch;
+
+    // checkout to selected branch or main branch
+    const branchToCheckout = selectedBranch || currentBranch;
+    await exec(
+      `git checkout ${branchToCheckout}`,
+      { cwd: `data/repositories/${Astro.cookies.get("workspace")?.value}` },
+    );
+
+    await workspaceRepository.update(
+      { id: parseInt(workspaceId) },
+      { currentBranch: branchToCheckout }
+    );
+  }
+} catch (err) {
+  console.error("Error fetching branches:", err);
+}
 ---
 
 <HomeLayout>
+  <div class="dropdown mt-4 mb-4">
+    <div tabindex="0" class="btn btn-primary">
+      {selectedBranch || workspace?.currentBranch}
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="16"
+        height="16"
+        viewBox="0 0 16 16"
+      >
+        <path
+          fill="currentColor"
+          fill-rule="evenodd"
+          d="M4.22 6.22a.75.75 0 0 1 1.06 0L8 8.94l2.72-2.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L4.22 7.28a.75.75 0 0 1 0-1.06"
+          clip-rule="evenodd"
+        />
+      </svg>
+    </div>
+    <ul
+      tabindex="0"
+      class="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm"
+    >
+      {
+        branches.map((branch) => (
+          <li>
+            <a href={`?branch=${branch}${Astro.url.searchParams.get("offset") ? `&offset=${Astro.url.searchParams.get("offset")}` : ''}`}>
+              {branch}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
   <div class="tabs tabs-border tabs-lg">
     <a
       class="tab"
@@ -20,6 +94,7 @@ const { current } = Astro.props;
     >
       Variables
     </a>
+    
   </div>
   <div class="p-4">
     <slot />

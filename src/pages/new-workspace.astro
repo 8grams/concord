@@ -28,6 +28,7 @@ if (Astro.request.method === "POST") {
       {
         name: data.get("name") as string,
         mainDirectory: data.get("mainDirectory") as string,
+        currentBranch: data.get("currentBranch") as string,
         mainBranch: data.get("mainBranch") as string,
         url,
         privateKey: encrypt(privateKey),
