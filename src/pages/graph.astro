@@ -36,12 +36,12 @@ try {
   // checkout to main branch
   await exec(
     `git checkout ${workspace?.mainBranch}`,
-    { cwd: `data/repositories/${Astro.cookies.get("workspace")?.value}` }
+    { cwd: `data/repositories/${workspaceId}` }
   );
 
   const { stdout } = await exec(
     `git log --graph --max-count=20 --skip=${offset} --pretty=format:"@%H %h %ad|%an|%s"`,
-    { cwd: `data/repositories/${Astro.cookies.get("workspace")?.value}` }
+    { cwd: `data/repositories/${workspaceId}` }
   );
   logs = stdout.split("\n").map((line) => {
     const log = line.match(
@@ -81,6 +81,7 @@ try {
     return log;
   });
 } catch (err) {
+  console.log(err);
   error = "Something went wrong.";
 }
 ---
