@@ -164,22 +164,29 @@ const comments = await Db.getRepository(Comment).find({
       disableStdin: true,
       scrollOnUserInput: true,
       tabStopWidth: 8,
-      lineHeight: 1.2
+      lineHeight: 1.2,
+      scrollSensitivity: 1,
+      smoothScrollDuration: 0
     });
     
     const terminalContainer = document.querySelector('[x-init="window.createTerminal($el)"]');
     terminal.open(terminalContainer);
 
+    // Add scroll event listener to ensure auto-scrolling
+    terminal.onData(() => {
+      terminal.scrollToBottom();
+    });
+
     // Show last plan output if it exists
     if (lastPlanOutput) {
-      terminal.write('\x1b[1;32mLast Plan Output:\x1b[0m\r\n\r\n');
+      terminal.write('\x1b[1;32mLast Output:\x1b[0m\r\n');
       terminal.write(lastPlanOutput.replace(/\n/g, '\r\n'));
     }
 
     // Function to run terraform plan
     async function runTerraformPlan() {
       terminal.clear();
-      terminal.write('\x1b[1;32m$ terraform init\x1b[0m\r\n\r\n');
+      terminal.write('\x1b[1;32m$ terraform plan\x1b[0m\r\n');
       
       const response = await fetch('/api/terraform-plan', {
         method: 'POST',
@@ -234,19 +241,6 @@ const comments = await Db.getRepository(Comment).find({
         const { done, value } = await reader.read();
         if (done) {
           terminal.write('\r\n\x1b[1;32mApply completed.\x1b[0m\r\n');
-          
-          // Save output to database
-          await fetch('/api/save-plan-output', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              proposalId,
-              output: allOutput
-            })
-          });
-          
           break;
         }
         const text = decoder.decode(value);

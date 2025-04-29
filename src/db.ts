@@ -25,6 +25,7 @@ export class Workspace extends BaseEntity {
 
   @Column("text", { nullable: true })
   currentBranch: string;
+  
   @Column("text", { nullable: true })
   mainDirectory: string;
 
