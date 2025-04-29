@@ -7,7 +7,9 @@ import { join } from "node:path";
 import { mkdirSync, writeFileSync } from "node:fs";
 
 const workspaceId = parseInt(Astro.cookies.get("workspace").value);
-const workspace = await Db.getRepository(Workspace).findOneBy({ id: workspaceId });
+const workspace = await Db.getRepository(Workspace).findOneBy({
+  id: workspaceId,
+});
 const hash = Astro.url.searchParams.get("hash");
 
 const proposal = await Db.getRepository(ProposalTable).findOneBy({
@@ -35,7 +37,7 @@ if (Astro.request.method === "POST") {
         workspace: workspace.id,
         hash,
         user: Astro.locals.user.id as any,
-        message: body.get("message") as string
+        message: body.get("message") as string,
       });
       break;
   }
@@ -60,19 +62,32 @@ const comments = await Db.getRepository(Comment).find({
     <div class="flex flex-col gap-2 p-4 bg-base-200 rounded-lg">
       <div class="flex items-center gap-2">
         <span class="font-medium">Status:</span>
-        <span class={`badge ${
-          proposal.status === 'On Review' ? 'badge-primary' : 
-          proposal.status === 'Applied' ? 'badge-success' : 
-          'badge-error'
-        }`}>{proposal.status}</span>
+        <span
+          class={`badge ${
+            proposal.status === "On Review"
+              ? "badge-primary"
+              : proposal.status === "Applied"
+                ? "badge-success"
+                : "badge-error"
+          }`}>{proposal.status}</span
+        >
       </div>
       <div class="flex items-center gap-2">
         <span class="font-medium">Branch:</span>
-        <span class="text-base-content/80" style={{ textDecoration: "underline" }}><a href={getBranchURL(workspace.url, proposal.branch)} target="_blank">{proposal.branch}</a></span>
+        <span
+          class="text-base-content/80"
+          style={{ textDecoration: "underline" }}
+          ><a
+            href={getBranchURL(workspace.url, proposal.branch)}
+            target="_blank">{proposal.branch}</a
+          ></span
+        >
       </div>
       <div class="flex items-center gap-2">
         <span class="font-medium">Created at:</span>
-        <span class="text-base-content/80">{proposal.createdAt.toLocaleString()}</span>
+        <span class="text-base-content/80"
+          >{proposal.createdAt.toLocaleString()}</span
+        >
       </div>
     </div>
     {
@@ -91,21 +106,12 @@ const comments = await Db.getRepository(Comment).find({
       )
     }
 
-    <div class="rounded overflow-hidden max-h-[600px] bg-black p-4" x-init="window.createTerminal($el)">
+    <div
+      class="rounded overflow-hidden max-h-[600px] bg-black p-4"
+      x-init="window.createTerminal($el)"
+    >
     </div>
     <h1 class="font-bold text-lg">Discussions</h1>
-    <form
-      class="p-4 border border-base-300 bg-base-200 flex flex-col gap-4"
-      method="post"
-    >
-      <textarea class="textarea w-full h-32" name="message"></textarea>
-      <div class="flex">
-        <div class="grow"></div>
-        <button class="btn btn-primary" name="action" value="Comment">
-          Post
-        </button>
-      </div>
-    </form>
     <ul class="space-y-4" x-data>
       {
         comments.map((comment) => (
@@ -113,31 +119,61 @@ const comments = await Db.getRepository(Comment).find({
             <div class="flex items-center gap-4">
               <div class="avatar">
                 <div class="w-12 rounded-full">
-                  <img src={`https://wsrv.nl/?url=${encodeURIComponent(comment.user.picture)}`} />
+                  <img
+                    src={`https://wsrv.nl/?url=${encodeURIComponent(comment.user.picture)}`}
+                  />
                 </div>
               </div>
-              <div><span class="font-bold">{comment.user.name}</span> <span class="text-sm text-gray-500">{comment.createdAt.toLocaleString()}</span></div>
+              <div>
+                <span class="font-bold">{comment.user.name}</span>{" "}
+                <span class="text-sm text-gray-500">
+                  {comment.createdAt.toLocaleString()}
+                </span>
+              </div>
             </div>
-            <div>{comment.message}</div>
+            <div set:html={comment.message} />
           </li>
         ))
       }
     </ul>
+    <form
+      class="p-4 border border-base-300 bg-base-200 flex flex-col gap-4"
+      method="post"
+      id="message-form"
+      action="#message-form"
+    >
+      <trix-editor input="message"></trix-editor>
+      <input type="hidden" id="message" name="message" />
+      <div class="flex">
+        <div class="grow"></div>
+        <button class="btn btn-primary" name="action" value="Comment">
+          Post
+        </button>
+      </div>
+    </form>
   </div>
 </HomeLayout>
 
-<script define:vars={{ workspaceId, mainDirectory: workspace.mainDirectory, proposalId: proposal.id, lastPlanOutput: proposal.lastPlanOutput }}>
+<script
+  is:inline
+  define:vars={{
+    workspaceId,
+    mainDirectory: workspace.mainDirectory,
+    proposalId: proposal.id,
+    lastPlanOutput: proposal.lastPlanOutput,
+  }}
+>
   // Load xterm.js from CDN
-  const script = document.createElement('script');
-  script.src = 'https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.min.js';
+  const script = document.createElement("script");
+  script.src = "https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.min.js";
   script.onload = () => {
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = 'https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css';
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = "https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css";
     document.head.appendChild(link);
 
     // Add custom styles for terminal
-    const style = document.createElement('style');
+    const style = document.createElement("style");
     style.textContent = `
       .xterm-viewport { overflow-y: auto !important; }
       .xterm-screen { padding-left: 0 !important; }
@@ -151,14 +187,14 @@ const comments = await Db.getRepository(Comment).find({
       rows: 30,
       cols: 120,
       fontSize: 14,
-      fontFamily: 'monospace',
+      fontFamily: "monospace",
       theme: {
-        background: '#000000',
-        foreground: '#ffffff'
+        background: "#000000",
+        foreground: "#ffffff",
       },
       scrollback: 1000,
       cursorBlink: true,
-      cursorStyle: 'block',
+      cursorStyle: "block",
       windowsMode: false,
       convertEol: true,
       disableStdin: true,
@@ -166,10 +202,12 @@ const comments = await Db.getRepository(Comment).find({
       tabStopWidth: 8,
       lineHeight: 1.2,
       scrollSensitivity: 1,
-      smoothScrollDuration: 0
+      smoothScrollDuration: 0,
     });
-    
-    const terminalContainer = document.querySelector('[x-init="window.createTerminal($el)"]');
+
+    const terminalContainer = document.querySelector(
+      '[x-init="window.createTerminal($el)"]',
+    );
     terminal.open(terminalContainer);
 
     // Add scroll event listener to ensure auto-scrolling
@@ -179,25 +217,25 @@ const comments = await Db.getRepository(Comment).find({
 
     // Show last plan output if it exists
     if (lastPlanOutput) {
-      terminal.write('\x1b[1;32mLast Output:\x1b[0m\r\n');
-      terminal.write(lastPlanOutput.replace(/\n/g, '\r\n'));
+      terminal.write("\x1b[1;32mLast Output:\x1b[0m\r\n");
+      terminal.write(lastPlanOutput.replace(/\n/g, "\r\n"));
     }
 
     // Function to run terraform plan
     async function runTerraformPlan() {
       terminal.clear();
-      terminal.write('\x1b[1;32m$ terraform plan\x1b[0m\r\n');
-      
-      const response = await fetch('/api/terraform-plan', {
-        method: 'POST',
+      terminal.write("\x1b[1;32m$ terraform plan\x1b[0m\r\n");
+
+      const response = await fetch("/api/terraform-plan", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           workspaceId,
           mainDirectory,
-          proposalId
-        })
+          proposalId,
+        }),
       });
 
       const reader = response.body.getReader();
@@ -206,32 +244,34 @@ const comments = await Db.getRepository(Comment).find({
       while (true) {
         const { done, value } = await reader.read();
         if (done) {
-          terminal.write('\r\n\x1b[1;32mPlan completed.\x1b[0m\r\n');
+          terminal.write("\r\n\x1b[1;32mPlan completed.\x1b[0m\r\n");
           break;
         }
         const text = decoder.decode(value);
         // Ensure proper line breaks and left alignment
-        terminal.write(text.replace(/\n/g, '\r\n'));
+        terminal.write(text.replace(/\n/g, "\r\n"));
       }
     }
 
     // Function to run terraform apply
     async function runTerraformApply() {
       terminal.clear();
-      terminal.write('\x1b[1;32m$ terraform apply -auto-approve\x1b[0m\r\n\r\n');
-      
-      let allOutput = '';
-      
-      const response = await fetch('/api/terraform-apply', {
-        method: 'POST',
+      terminal.write(
+        "\x1b[1;32m$ terraform apply -auto-approve\x1b[0m\r\n\r\n",
+      );
+
+      let allOutput = "";
+
+      const response = await fetch("/api/terraform-apply", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           workspaceId,
           mainDirectory,
-          proposalId
-        })
+          proposalId,
+        }),
       });
 
       const reader = response.body.getReader();
@@ -240,26 +280,33 @@ const comments = await Db.getRepository(Comment).find({
       while (true) {
         const { done, value } = await reader.read();
         if (done) {
-          terminal.write('\r\n\x1b[1;32mApply completed.\x1b[0m\r\n');
+          terminal.write("\r\n\x1b[1;32mApply completed.\x1b[0m\r\n");
           break;
         }
         const text = decoder.decode(value);
         allOutput += text;
         // Ensure proper line breaks and left alignment
-        terminal.write(text.replace(/\n/g, '\r\n'));
+        terminal.write(text.replace(/\n/g, "\r\n"));
       }
     }
 
     // Add event listeners to the buttons
-    document.querySelector('button[value="Plan"]').addEventListener('click', (e) => {
-      e.preventDefault();
-      runTerraformPlan();
-    });
+    document
+      .querySelector('button[value="Plan"]')
+      .addEventListener("click", (e) => {
+        e.preventDefault();
+        runTerraformPlan();
+      });
 
-    document.querySelector('button[value="Approve"]').addEventListener('click', (e) => {
-      e.preventDefault();
-      runTerraformApply();
-    });
+    document
+      .querySelector('button[value="Approve"]')
+      .addEventListener("click", (e) => {
+        e.preventDefault();
+        runTerraformApply();
+      });
   };
   document.head.appendChild(script);
+</script>
+<script>
+  import "./trix.client";
 </script>
