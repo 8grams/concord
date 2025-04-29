@@ -9,20 +9,6 @@ import "../styles/global.css";
     <meta name="viewport" content="width=device-width" />
     <link rel="icon" href="/logo.png" />
     <title>Concord</title>
-    <script>
-      import "@xterm/xterm/css/xterm.css";
-      import { Terminal } from "@xterm/xterm";
-
-      const createTerminal = (element: HTMLElement) => {
-        const term = new Terminal({
-          convertEol: true,
-        });
-        term.open(element);
-        term.write("Run Plan to start Terraform Plan, or Run Apply to start Terraform Apply.");
-      };
-
-      (window as any).createTerminal = createTerminal;
-    </script>
   </head>
   <body>
     <slot />

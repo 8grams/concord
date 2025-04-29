@@ -14,7 +14,7 @@ const workspace = await Db.getRepository(Workspace).findOne({
   where: { id: workspaceId },
 });
 
-const currentBranch = Astro.cookies.get("currentBranch").value ?? workspace?.mainBranch as string;
+const currentBranch = workspace?.currentBranch ?? workspace?.mainBranch as string;
 
 const tempKeyPath = join(tmpdir(), `tempkey-${Date.now()}`);
 writeFileSync(tempKeyPath, decrypt(workspace?.privateKey));

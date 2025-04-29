@@ -1,7 +1,10 @@
 ---
-import { Db, Proposal as ProposalTable, Comment, Workspace } from "../db";
+import { Db, Proposal as ProposalTable, Comment, Workspace, ProposalPlan } from "../db";
 import HomeLayout from "../layouts/HomeLayout.astro";
 import { getBranchURL } from "../utils/helper";
+import { spawn } from "node:child_process";
+import { join } from "node:path";
+import { mkdirSync, writeFileSync } from "node:fs";
 
 const workspaceId = parseInt(Astro.cookies.get("workspace").value);
 const workspace = await Db.getRepository(Workspace).findOneBy({ id: workspaceId });
@@ -25,7 +28,35 @@ if (Astro.request.method === "POST") {
       await proposal.save();
       break;
     case "Plan":
-      // run terraform plan
+      const planDir = join("data", "plans");
+      mkdirSync(planDir, { recursive: true });
+      
+      const planFile = join(planDir, `${Date.now()}.txt`);
+
+      // save plan file to database
+      await Db.getRepository(ProposalPlan).insert({
+        proposal: proposal.id,
+        output: planFile,
+        status: "Running",
+      });
+      
+      const terraformProcess = spawn("terraform", ["plan"], {
+        cwd: `data/repositories/${workspaceId}/${workspace.mainDirectory}`
+      });
+
+      let output = "";
+      
+      terraformProcess.stdout.on("data", (data) => {
+        output += data.toString();
+      });
+
+      terraformProcess.stderr.on("data", (data) => {
+        output += `Error: ${data.toString()}`;
+      });
+
+      terraformProcess.on("close", (code) => {
+        writeFileSync(planFile, output);
+      });
       break;
     case "Comment":
       await Db.getRepository(Comment).insert({
@@ -88,7 +119,7 @@ const comments = await Db.getRepository(Comment).find({
       )
     }
 
-    <div class="rounded overflow-hidden" x-init="window.createTerminal($el)">
+    <div class="rounded overflow-hidden max-h-[600px] bg-black p-4" x-init="window.createTerminal($el)">
     </div>
     <h1 class="font-bold text-lg">Discussions</h1>
     <form
@@ -122,3 +153,125 @@ const comments = await Db.getRepository(Comment).find({
     </ul>
   </div>
 </HomeLayout>
+
+<script define:vars={{ workspaceId, mainDirectory: workspace.mainDirectory, proposalId: proposal.id }}>
+  // Load xterm.js from CDN
+  const script = document.createElement('script');
+  script.src = 'https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.min.js';
+  script.onload = () => {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css';
+    document.head.appendChild(link);
+
+    // Add custom styles for terminal
+    const style = document.createElement('style');
+    style.textContent = `
+      .xterm-viewport { overflow-y: auto !important; }
+      .xterm-screen { padding-left: 0 !important; }
+      .xterm-rows { text-align: left !important; }
+      .xterm { height: 100% !important; }
+    `;
+    document.head.appendChild(style);
+
+    // Initialize terminal after xterm.js is loaded
+    const terminal = new Terminal({
+      rows: 30,
+      cols: 120,
+      fontSize: 14,
+      fontFamily: 'monospace',
+      theme: {
+        background: '#000000',
+        foreground: '#ffffff'
+      },
+      scrollback: 1000,
+      cursorBlink: true,
+      cursorStyle: 'block',
+      windowsMode: false,
+      convertEol: true,
+      disableStdin: true,
+      scrollOnUserInput: true,
+      tabStopWidth: 8,
+      lineHeight: 1.2
+    });
+    
+    const terminalContainer = document.querySelector('[x-init="window.createTerminal($el)"]');
+    terminal.open(terminalContainer);
+
+    // Function to run terraform plan
+    async function runTerraformPlan() {
+      terminal.clear();
+      terminal.write('\x1b[1;32m$ terraform plan\x1b[0m\r\n\r\n');
+      
+      const response = await fetch('/api/terraform-plan', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          workspaceId,
+          mainDirectory,
+          proposalId
+        })
+      });
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) {
+          terminal.write('\r\n\x1b[1;32mPlan completed.\x1b[0m\r\n');
+          break;
+        }
+        const text = decoder.decode(value);
+        // Ensure proper line breaks and left alignment
+        terminal.write(text.replace(/\n/g, '\r\n'));
+      }
+    }
+
+    // Function to run terraform apply
+    async function runTerraformApply() {
+      terminal.clear();
+      terminal.write('\x1b[1;32m$ terraform apply -auto-approve\x1b[0m\r\n\r\n');
+      
+      const response = await fetch('/api/terraform-apply', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          workspaceId,
+          mainDirectory,
+          proposalId
+        })
+      });
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) {
+          terminal.write('\r\n\x1b[1;32mApply completed.\x1b[0m\r\n');
+          break;
+        }
+        const text = decoder.decode(value);
+        // Ensure proper line breaks and left alignment
+        terminal.write(text.replace(/\n/g, '\r\n'));
+      }
+    }
+
+    // Add event listeners to the buttons
+    document.querySelector('button[value="Plan"]').addEventListener('click', (e) => {
+      e.preventDefault();
+      runTerraformPlan();
+    });
+
+    document.querySelector('button[value="Approve"]').addEventListener('click', (e) => {
+      e.preventDefault();
+      runTerraformApply();
+    });
+  };
+  document.head.appendChild(script);
+</script>

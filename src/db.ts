@@ -76,8 +76,23 @@ export class Proposal extends BaseEntity {
   @Column("text", { nullable: true })
   status: "On Review" | "Applied" | "Rejected";
 
+  @CreateDateColumn()
+  createdAt: Date;
+}
+
+@Entity()
+export class ProposalPlan extends BaseEntity {
+  @PrimaryGeneratedColumn("increment")
+  id: number;
+
+  @Column("int")
+  proposal: number;
+
+  @Column("text")
+  output: string;
+
   @Column("text", { nullable: true })
-  planOutput: string;
+  status: "Running" | "Finished";
 
   @CreateDateColumn()
   createdAt: Date;
@@ -109,7 +124,7 @@ export const Db = new DataSource({
   type: "better-sqlite3",
   database: "data/data.db",
   synchronize: true,
-  entities: [Workspace, User, Proposal, Comment],
+  entities: [Workspace, User, Proposal, Comment, ProposalPlan],
 });
 
 export const admin = {
