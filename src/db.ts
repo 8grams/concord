@@ -70,6 +70,9 @@ export class Proposal extends BaseEntity {
   @Column("text")
   sourceBranch: string;
 
+  @Column("text", { nullable: true })
+  lastPlanOutput: string;
+
   @Column("text")
   branch: string;
 
@@ -80,23 +83,6 @@ export class Proposal extends BaseEntity {
   createdAt: Date;
 }
 
-@Entity()
-export class ProposalPlan extends BaseEntity {
-  @PrimaryGeneratedColumn("increment")
-  id: number;
-
-  @Column("int")
-  proposal: number;
-
-  @Column("text")
-  output: string;
-
-  @Column("text", { nullable: true })
-  status: "Running" | "Finished";
-
-  @CreateDateColumn()
-  createdAt: Date;
-}
 
 @Entity()
 export class Comment extends BaseEntity {
@@ -124,7 +110,7 @@ export const Db = new DataSource({
   type: "better-sqlite3",
   database: "data/data.db",
   synchronize: true,
-  entities: [Workspace, User, Proposal, Comment, ProposalPlan],
+  entities: [Workspace, User, Proposal, Comment],
 });
 
 export const admin = {

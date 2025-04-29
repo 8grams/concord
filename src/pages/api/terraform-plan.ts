@@ -1,25 +1,19 @@
 import { spawn } from "node:child_process";
 import type { APIRoute } from "astro";
-import { Db, ProposalPlan } from "../../db";
+import { Db, Proposal } from "../../db";
 
 export const POST: APIRoute = async ({ request }) => {
   const { workspaceId, mainDirectory, proposalId } = await request.json();
 
-  // Create a new plan record
-  const plan = await Db.getRepository(ProposalPlan).save({
-    proposal: proposalId,
-    status: "Running",
-    output: "",
-  });
-
-  const terraformProcess = spawn("terraform", ["init"], {
-    cwd: `data/repositories/${workspaceId}/${mainDirectory}`
-  });
-
   const stream = new ReadableStream({
     start(controller) {
-      let output = "";
+      // Run both commands in sequence using shell
+      const terraformProcess = spawn("sh", ["-c", "terraform init && terraform plan"], {
+        cwd: `data/repositories/${workspaceId}/${mainDirectory}`
+      });
 
+      let output = "";
+      
       terraformProcess.stdout.on("data", (data) => {
         const text = data.toString();
         output += text;
@@ -33,10 +27,9 @@ export const POST: APIRoute = async ({ request }) => {
       });
 
       terraformProcess.on("close", async () => {
-        // Update the plan record with the final output
-        await Db.getRepository(ProposalPlan).update(plan.id, {
-          output,
-          status: "Finished"
+        // Save output to database
+        await Db.getRepository(Proposal).update(proposalId, {
+          lastPlanOutput: output
         });
         controller.close();
       });

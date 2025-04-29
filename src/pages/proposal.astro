@@ -1,5 +1,5 @@
 ---
-import { Db, Proposal as ProposalTable, Comment, Workspace, ProposalPlan } from "../db";
+import { Db, Proposal as ProposalTable, Comment, Workspace } from "../db";
 import HomeLayout from "../layouts/HomeLayout.astro";
 import { getBranchURL } from "../utils/helper";
 import { spawn } from "node:child_process";
@@ -28,35 +28,7 @@ if (Astro.request.method === "POST") {
       await proposal.save();
       break;
     case "Plan":
-      const planDir = join("data", "plans");
-      mkdirSync(planDir, { recursive: true });
-      
-      const planFile = join(planDir, `${Date.now()}.txt`);
-
-      // save plan file to database
-      await Db.getRepository(ProposalPlan).insert({
-        proposal: proposal.id,
-        output: planFile,
-        status: "Running",
-      });
-      
-      const terraformProcess = spawn("terraform", ["plan"], {
-        cwd: `data/repositories/${workspaceId}/${workspace.mainDirectory}`
-      });
-
-      let output = "";
-      
-      terraformProcess.stdout.on("data", (data) => {
-        output += data.toString();
-      });
-
-      terraformProcess.stderr.on("data", (data) => {
-        output += `Error: ${data.toString()}`;
-      });
-
-      terraformProcess.on("close", (code) => {
-        writeFileSync(planFile, output);
-      });
+      // run terraform plan
       break;
     case "Comment":
       await Db.getRepository(Comment).insert({
@@ -154,7 +126,7 @@ const comments = await Db.getRepository(Comment).find({
   </div>
 </HomeLayout>
 
-<script define:vars={{ workspaceId, mainDirectory: workspace.mainDirectory, proposalId: proposal.id }}>
+<script define:vars={{ workspaceId, mainDirectory: workspace.mainDirectory, proposalId: proposal.id, lastPlanOutput: proposal.lastPlanOutput }}>
   // Load xterm.js from CDN
   const script = document.createElement('script');
   script.src = 'https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.min.js';
@@ -198,10 +170,16 @@ const comments = await Db.getRepository(Comment).find({
     const terminalContainer = document.querySelector('[x-init="window.createTerminal($el)"]');
     terminal.open(terminalContainer);
 
+    // Show last plan output if it exists
+    if (lastPlanOutput) {
+      terminal.write('\x1b[1;32mLast Plan Output:\x1b[0m\r\n\r\n');
+      terminal.write(lastPlanOutput.replace(/\n/g, '\r\n'));
+    }
+
     // Function to run terraform plan
     async function runTerraformPlan() {
       terminal.clear();
-      terminal.write('\x1b[1;32m$ terraform plan\x1b[0m\r\n\r\n');
+      terminal.write('\x1b[1;32m$ terraform init\x1b[0m\r\n\r\n');
       
       const response = await fetch('/api/terraform-plan', {
         method: 'POST',
@@ -235,6 +213,8 @@ const comments = await Db.getRepository(Comment).find({
       terminal.clear();
       terminal.write('\x1b[1;32m$ terraform apply -auto-approve\x1b[0m\r\n\r\n');
       
+      let allOutput = '';
+      
       const response = await fetch('/api/terraform-apply', {
         method: 'POST',
         headers: {
@@ -254,9 +234,23 @@ const comments = await Db.getRepository(Comment).find({
         const { done, value } = await reader.read();
         if (done) {
           terminal.write('\r\n\x1b[1;32mApply completed.\x1b[0m\r\n');
+          
+          // Save output to database
+          await fetch('/api/save-plan-output', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              proposalId,
+              output: allOutput
+            })
+          });
+          
           break;
         }
         const text = decoder.decode(value);
+        allOutput += text;
         // Ensure proper line breaks and left alignment
         terminal.write(text.replace(/\n/g, '\r\n'));
       }
