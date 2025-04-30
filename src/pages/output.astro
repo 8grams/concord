@@ -9,6 +9,9 @@ const workspace = await Db.getRepository(Workspace).findOneBy({
   id: workspaceId,
 });
 const outputDirectory = `data/repositories/${workspaceId}/${workspace.outputDirectory ?? "output"}`;
+if (!fs.existsSync(outputDirectory)) {
+  return Astro.redirect("/graph");
+}
 
 // Get files with their stats
 const outputfiles = fs
@@ -35,10 +38,10 @@ const outputfiles = fs
           <table class="table">
             <thead>
               <tr>
-                <th>File Name</th>
+                <th>Name</th>
                 <th>Last Updated</th>
                 <th>Size</th>
-                <th>Actions</th>
+                <th>&nbsp;</th>
               </tr>
             </thead>
             <tbody>
