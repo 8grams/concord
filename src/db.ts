@@ -37,9 +37,6 @@ export class Workspace extends BaseEntity {
   privateKey: string;
 
   @Column("text", { nullable: true })
-  outputDirectory: string;
-
-  @Column("text", { nullable: true })
   status: string;
 
   @Column("text", { nullable: true })
