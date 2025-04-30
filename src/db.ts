@@ -6,7 +6,8 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
-  PrimaryGeneratedColumn
+  PrimaryGeneratedColumn,
+  UpdateDateColumn
 } from "typeorm";
 
 @Entity()
@@ -82,6 +83,25 @@ export class Proposal extends BaseEntity {
 
   @CreateDateColumn()
   createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
+
+  @ManyToOne(() => User)
+  @JoinColumn({ name: "createdBy", referencedColumnName: "id" })
+  createdBy: User;
+
+  @ManyToOne(() => User)
+  @JoinColumn({ name: "lastPlanExecutor", referencedColumnName: "id" })
+  lastPlanExecutor: User;
+
+  @ManyToOne(() => User)
+  @JoinColumn({ name: "applyExecutor", referencedColumnName: "id" })
+  applyExecutor: User;
+
+  @ManyToOne(() => User)
+  @JoinColumn({ name: "rejector", referencedColumnName: "id" })
+  rejector: User;
 }
 
 

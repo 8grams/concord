@@ -4,7 +4,7 @@ import { Db, Proposal, Workspace } from "../../db";
 import { decrypt } from "../../utils/crypto";
 
 export const POST: APIRoute = async ({ request }) => {
-  const { workspaceId, mainDirectory, proposalId } = await request.json();
+  const { workspaceId, mainDirectory, proposalId, userId } = await request.json();
   const workspace = await Db.getRepository(Workspace).findOne({ where: { id: workspaceId } });
   const envVars = workspace?.envVars;
 
@@ -42,7 +42,8 @@ export const POST: APIRoute = async ({ request }) => {
       terraformProcess.on("close", async () => {
         // Save output to database
         await Db.getRepository(Proposal).update(proposalId, {
-          lastPlanOutput: output
+          lastPlanOutput: output,
+          lastPlanExecutor: userId
         });
         controller.close();
       });

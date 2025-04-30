@@ -2,9 +2,6 @@
 import { Db, Proposal as ProposalTable, Comment, Workspace } from "../db";
 import HomeLayout from "../layouts/HomeLayout.astro";
 import { getBranchURL } from "../utils/helper";
-import { spawn } from "node:child_process";
-import { join } from "node:path";
-import { mkdirSync, writeFileSync } from "node:fs";
 
 const workspaceId = parseInt(Astro.cookies.get("workspace").value);
 const workspace = await Db.getRepository(Workspace).findOneBy({
@@ -12,9 +9,17 @@ const workspace = await Db.getRepository(Workspace).findOneBy({
 });
 const hash = Astro.url.searchParams.get("hash");
 
-const proposal = await Db.getRepository(ProposalTable).findOneBy({
-  workspace: workspace.id,
-  hash,
+const proposal = await Db.getRepository(ProposalTable).findOne({
+  where: {
+    workspace: workspace.id,
+    hash,
+  },
+  relations: {
+    lastPlanExecutor: true,
+    applyExecutor: true,
+    createdBy: true,
+    rejector: true,
+  },
 });
 
 if (Astro.request.method === "POST") {
@@ -25,6 +30,7 @@ if (Astro.request.method === "POST") {
       break;
     case "Reject":
       proposal.status = "Rejected";
+      proposal.rejector = Astro.locals.user.id as any;
       await proposal.save();
       break;
     case "Plan":
@@ -78,19 +84,24 @@ const comments = await Db.getRepository(Comment).find({
           ><a
             href={getBranchURL(workspace.url, proposal.branch)}
             target="_blank">{proposal.branch}</a
-          ></span
-        >
+          ></span>
       </div>
       <div class="flex items-center gap-2">
-        <span class="font-medium">Created at:</span>
-        <span class="text-base-content/80"
-          >{proposal.createdAt.toLocaleString()}</span
-        >
+        <span class="font-medium">Created by:</span>
+        <span class="text-base-content/80">{ proposal.createdBy?.name }</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="font-medium">{ proposal.status === "On Review" ? "Created at:" : proposal.status === "Applied" ? "Applied at:" : "Rejected at:" }</span>
+        <span class="text-base-content/80">{ proposal.status === "On Review" ? proposal.createdAt.toLocaleString() : proposal.status === "Applied" ? proposal.updatedAt.toLocaleString() : proposal.updatedAt.toLocaleString() }</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="font-medium">{ proposal.status === "On Review" && proposal.lastPlanExecutor ? "Last Planned by:" : proposal.status === "Applied" && proposal.applyExecutor ? "Applied by:" : proposal.status === "Rejected" && proposal.rejector ? "Rejected by:" : "" }</span>
+        <span class="text-base-content/80">{ proposal.status === "On Review" ? proposal.lastPlanExecutor?.name : proposal.status === "Applied" ? proposal.applyExecutor?.name : proposal.rejector?.name }</span>
       </div>
     </div>
     {
       proposal.status === "On Review" ? (
-        <form class="flex gap-4" method="post">
+        <form class="flex gap-4" method="post" id="proposal-actions-form">
           <button class="btn btn-primary" name="action" value="Approve">
             Approve
           </button>
@@ -125,6 +136,18 @@ const comments = await Db.getRepository(Comment).find({
           <form method="dialog">
             <button class="btn">Cancel</button>
             <button class="btn btn-primary" id="confirmApply">Apply</button>
+          </form>
+        </div>
+      </div>
+    </dialog>
+    <dialog id="rejectModal" class="modal">
+      <div class="modal-box">
+        <h3 class="font-bold text-lg">Confirm Reject</h3>
+        <p class="py-4">Are you sure you want to reject this proposal?</p>
+        <div class="modal-action">
+          <form method="dialog">
+            <button class="btn">Cancel</button>
+            <button class="btn btn-error" form="proposal-actions-form" name="action" value="Reject">Reject</button>
           </form>
         </div>
       </div>
@@ -187,6 +210,7 @@ const comments = await Db.getRepository(Comment).find({
     mainDirectory: workspace.mainDirectory,
     proposalId: proposal.id,
     lastPlanOutput: proposal.lastPlanOutput,
+    userId: Astro.locals.user.id,
   }}
 >
   // Load xterm.js from CDN
@@ -261,6 +285,7 @@ const comments = await Db.getRepository(Comment).find({
           workspaceId,
           mainDirectory,
           proposalId,
+          userId,
         }),
       });
 
@@ -297,6 +322,7 @@ const comments = await Db.getRepository(Comment).find({
           workspaceId,
           mainDirectory,
           proposalId,
+          userId,
         }),
       });
 
@@ -338,6 +364,21 @@ const comments = await Db.getRepository(Comment).find({
         const modal = document.getElementById('confirmModal');
         modal.close();
         runTerraformApply();
+      });
+
+    document
+      .querySelector('button[value="Reject"]')
+      .addEventListener("click", (e) => {
+        e.preventDefault();
+        const modal = document.getElementById('rejectModal');
+        modal.showModal();
+      });
+
+    document
+      .getElementById('confirmReject')
+      .addEventListener("click", () => {
+        const modal = document.getElementById('rejectModal');
+        modal.close();
       });
   };
   document.head.appendChild(script);

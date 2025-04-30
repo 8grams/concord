@@ -3,7 +3,7 @@ import { execSync } from "node:child_process";
 
 const workspaceId = parseInt(Astro.cookies.get("workspace").value)
 
-execSync(`cd data/repositories/${workspaceId} && git pull`);
+execSync(`cd data/repositories/${workspaceId} && git pull origin`);
 
 // redirect back to previous page
 const referer = Astro.request.headers.get("referer");
