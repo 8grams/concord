@@ -7,7 +7,7 @@ import {
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
-  UpdateDateColumn
+  UpdateDateColumn,
 } from "typeorm";
 
 @Entity()
@@ -26,7 +26,7 @@ export class Workspace extends BaseEntity {
 
   @Column("text", { nullable: true })
   currentBranch: string;
-  
+
   @Column("text", { nullable: true })
   mainDirectory: string;
 
@@ -35,6 +35,9 @@ export class Workspace extends BaseEntity {
 
   @Column("text", { nullable: true })
   privateKey: string;
+
+  @Column("text", { nullable: true })
+  outputDirectory: string;
 
   @Column("text", { nullable: true })
   status: string;
@@ -106,7 +109,6 @@ export class Proposal extends BaseEntity {
   @JoinColumn({ name: "rejector", referencedColumnName: "id" })
   rejector: User;
 }
-
 
 @Entity()
 export class Comment extends BaseEntity {
