@@ -89,7 +89,7 @@ const comments = await Db.getRepository(Comment).find({
       </div>
     </div>
     {
-      proposal.status === "On Review" && (
+      proposal.status === "On Review" ? (
         <form class="flex gap-4" method="post">
           <button class="btn btn-primary" name="action" value="Approve">
             Approve
@@ -101,7 +101,15 @@ const comments = await Db.getRepository(Comment).find({
             Run Plan
           </button>
         </form>
-      )
+      ) : proposal.status === "Applied" ? (
+        <div class="alert alert-info">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          <span>Changes have been applied. Would you like to create a Pull Request?</span>
+          <div>
+            <a href={getBranchURL(workspace.url, proposal.branch)} target="_blank" class="btn btn-sm btn-primary">Create PR</a>
+          </div>
+        </div>
+      ) : null
     }
 
     <div
@@ -124,43 +132,51 @@ const comments = await Db.getRepository(Comment).find({
     <h1 class="font-bold text-lg">Discussions</h1>
     <ul class="space-y-4" x-data>
       {
-        comments.map((comment) => (
-          <li class="border border-base-300 rounded p-4 flex flex-col gap-4">
-            <div class="flex items-center gap-4">
-              <div class="avatar">
-                <div class="w-12 rounded-full">
-                  <img
-                    src={`https://wsrv.nl/?url=${encodeURIComponent(comment.user.picture)}`}
-                  />
+        comments.length > 0 ? (
+          comments.map((comment) => (
+            <li class="border border-base-300 rounded p-4 flex flex-col gap-4">
+              <div class="flex items-center gap-4">
+                <div class="avatar">
+                  <div class="w-12 rounded-full">
+                    <img
+                      src={`https://wsrv.nl/?url=${encodeURIComponent(comment.user.picture)}`}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <span class="font-bold">{comment.user.name}</span>{" "}
+                  <span class="text-sm text-gray-500">
+                    {comment.createdAt.toLocaleString()}
+                  </span>
                 </div>
               </div>
-              <div>
-                <span class="font-bold">{comment.user.name}</span>{" "}
-                <span class="text-sm text-gray-500">
-                  {comment.createdAt.toLocaleString()}
-                </span>
-              </div>
-            </div>
-            <div set:html={comment.message} />
-          </li>
-        ))
+              <div set:html={comment.message} />
+            </li>
+          ))
+        ) : (
+          <div class="text-center text-gray-500 py-4">There is no comments</div>
+        )
       }
     </ul>
-    <form
-      class="p-4 border border-base-300 bg-base-200 flex flex-col gap-4"
-      method="post"
-      id="message-form"
-      action="#message-form"
-    >
-      <trix-editor input="message"></trix-editor>
-      <input type="hidden" id="message" name="message" />
-      <div class="flex">
-        <div class="grow"></div>
-        <button class="btn btn-primary" name="action" value="Comment">
-          Post
-        </button>
-      </div>
-    </form>
+    {
+      proposal.status == "On Review" && (
+        <form
+          class="p-4 border border-base-300 bg-base-200 flex flex-col gap-4"
+          method="post"
+          id="message-form"
+          action="#message-form"
+        >
+          <trix-editor input="message"></trix-editor>
+          <input type="hidden" id="message" name="message" />
+          <div class="flex">
+            <div class="grow"></div>
+            <button class="btn btn-primary" name="action" value="Comment">
+              Post
+            </button>
+          </div>
+        </form>
+      )
+    }
   </div>
 </HomeLayout>
 
