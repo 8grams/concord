@@ -15,30 +15,35 @@ let workspace: Workspace | null = null;
 try {
   if (Astro.cookies.get("workspace")) {
     const workspaceId = Astro.cookies.get("workspace")?.value;
-    workspace = await workspaceRepository.findOneBy({ id: parseInt(workspaceId) });
+    workspace = await workspaceRepository.findOneBy({
+      id: parseInt(workspaceId),
+    });
     const exec = promisify(execCPS);
 
     // Get list of branches
     const { stdout: branchesStdout } = await exec(
       `git branch --format="%(refname:short)"`,
-      { cwd: `data/repositories/${Astro.cookies.get("workspace")?.value}` }
+      { cwd: `data/repositories/${Astro.cookies.get("workspace")?.value}` },
     );
     branches = branchesStdout
       .split("\n")
-      .filter(branch => branch.trim() !== "" && !branch.startsWith("concord-proposal"));
+      .filter(
+        (branch) =>
+          branch.trim() !== "" && !branch.startsWith("concord-proposal"),
+      );
 
-    const currentBranch = Astro.cookies.get("currentBranch")?.value ?? workspace?.currentBranch;
+    const currentBranch =
+      Astro.cookies.get("currentBranch")?.value ?? workspace?.currentBranch;
 
     // checkout to selected branch or main branch
     const branchToCheckout = selectedBranch || currentBranch;
-    await exec(
-      `git checkout ${branchToCheckout}`,
-      { cwd: `data/repositories/${Astro.cookies.get("workspace")?.value}` },
-    );
+    await exec(`git checkout ${branchToCheckout}`, {
+      cwd: `data/repositories/${Astro.cookies.get("workspace")?.value}`,
+    });
 
     await workspaceRepository.update(
       { id: parseInt(workspaceId) },
-      { currentBranch: branchToCheckout }
+      { currentBranch: branchToCheckout },
     );
   }
 } catch (err) {
@@ -60,8 +65,7 @@ try {
           fill="currentColor"
           fill-rule="evenodd"
           d="M4.22 6.22a.75.75 0 0 1 1.06 0L8 8.94l2.72-2.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L4.22 7.28a.75.75 0 0 1 0-1.06"
-          clip-rule="evenodd"
-        />
+          clip-rule="evenodd"></path>
       </svg>
     </div>
     <ul
@@ -71,7 +75,9 @@ try {
       {
         branches.map((branch) => (
           <li>
-            <a href={`?branch=${branch}${Astro.url.searchParams.get("offset") ? `&offset=${Astro.url.searchParams.get("offset")}` : ''}`}>
+            <a
+              href={`?branch=${branch}${Astro.url.searchParams.get("offset") ? `&offset=${Astro.url.searchParams.get("offset")}` : ""}`}
+            >
               {branch}
             </a>
           </li>
@@ -94,7 +100,13 @@ try {
     >
       Variables
     </a>
-    
+    <a
+      class="tab"
+      href="/output"
+      class:list={[current === "output" && "tab-active"]}
+    >
+      Output
+    </a>
   </div>
   <div class="p-4">
     <slot />

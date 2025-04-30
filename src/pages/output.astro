@@ -1,0 +1,67 @@
+---
+import { Db, Workspace } from "../db";
+import fs from "fs";
+import path from "path";
+import GraphLayout from "../layouts/GraphLayout.astro";
+
+const workspaceId = parseInt(Astro.cookies.get("workspace").value);
+const workspace = await Db.getRepository(Workspace).findOneBy({
+  id: workspaceId,
+});
+const outputDirectory = `data/repositories/${workspaceId}/${workspace.outputDirectory ?? "output"}`;
+
+// Get files with their stats
+const outputfiles = fs
+  .readdirSync(outputDirectory)
+  .filter((file) => file !== ".gitignore")
+  .map((file) => {
+    const filePath = path.join(outputDirectory, file);
+    const stats = fs.statSync(filePath);
+    return {
+      name: file,
+      lastModified: stats.mtime,
+      size: (stats.size / 1024).toFixed(2), // Size in KB
+    };
+  });
+---
+
+<GraphLayout current="output">
+  <div class="p-6">
+    {
+      outputfiles.length === 0 ? (
+        <p class="text-gray-500 italic">No output files available.</p>
+      ) : (
+        <div class="overflow-x-auto">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>File Name</th>
+                <th>Last Updated</th>
+                <th>Size</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {outputfiles.map((file) => (
+                <tr>
+                  <td>{file.name}</td>
+                  <td>{file.lastModified.toLocaleString()}</td>
+                  <td>{file.size} KB</td>
+                  <td>
+                    <a
+                      href={`/api/download?workspace=${workspaceId}&file=${encodeURIComponent(file.name)}&dir=${encodeURIComponent(workspace.outputDirectory ?? "output")}`}
+                      class="btn btn-sm btn-success"
+                      download={file.name}
+                    >
+                      Download
+                    </a>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )
+    }
+  </div>
+</GraphLayout>

@@ -1,5 +1,5 @@
 ---
-import { rm } from "node:fs";
+import { rm, write } from "node:fs";
 import { exec } from "node:child_process";
 import { tmpdir } from "os";
 import { join } from "path";
@@ -12,6 +12,7 @@ if (Astro.request.method === "POST") {
   const data = await Astro.request.formData();
   const url = data.get("url") as string;
   let id = data.get("id");
+  const outputDirectory = data.get("outputDirectory") as string;
 
   const envKeys = data.getAll("envKeys[]");
   const envValues = data.getAll("envValues[]");
@@ -31,11 +32,17 @@ if (Astro.request.method === "POST") {
         currentBranch: data.get("currentBranch") as string,
         mainBranch: data.get("mainBranch") as string,
         url,
+        outputDirectory,
         privateKey: encrypt(privateKey),
         status: "Cloning",
         envVars: envVariables,
-      }
+      },
     );
+    // create output directory
+    const outputDir = `data/repositories/${id}/${outputDirectory ?? "output"}`;
+    mkdirSync(outputDir, { recursive: true });
+    // add gitignore
+    writeFileSync(`${outputDir}/.gitignore`, `*`);
   } else {
     id = (
       await repository.insert({
@@ -43,6 +50,7 @@ if (Astro.request.method === "POST") {
         url,
         mainDirectory: data.get("mainDirectory") as string,
         mainBranch: data.get("mainBranch") as string,
+        outputDirectory,
         privateKey: encrypt(privateKey),
         status: "Cloning",
         envVars: envVariables,
@@ -58,7 +66,7 @@ if (Astro.request.method === "POST") {
     chmodSync(tempKeyPath, 0o600);
 
     exec(
-      //`git clone --filter=blob:none "${url}" data/repositories/${id}`,
+      // `git clone --filter=blob:none "${url}" data/repositories/${id}`,
       `GIT_SSH_COMMAND="ssh -i ${tempKeyPath} -o IdentitiesOnly=yes -o StrictHostKeyChecking=no" git clone --filter=blob:none "${url}" data/repositories/${id}`,
       (err, stdout, stderr) => {
         unlinkSync(tempKeyPath);
@@ -67,9 +75,18 @@ if (Astro.request.method === "POST") {
           {
             status: err ? "Error" : "Cloned",
             log: stdout + stderr,
-          }
+          },
         );
-      }
+        if (!err) {
+          const outputDir = join(
+            `data/repositories/${id}`,
+            outputDirectory ?? "output",
+          );
+          mkdirSync(outputDir, { recursive: true });
+          // write gitignore
+          writeFileSync(join(outputDir, ".gitignore"), "*");
+        }
+      },
     );
   });
 
@@ -151,6 +168,16 @@ const workspace: Workspace | null = id
         />
       </label>
       <label class="floating-label">
+        <span>Output Directory</span>
+        <input
+          type="text"
+          placeholder="Output Directory"
+          class="input input-md w-full"
+          name="outputDirectory"
+          value={workspace?.outputDirectory}
+        />
+      </label>
+      <label class="floating-label">
         <span>SSH Git Private Key</span>
         <textarea
           placeholder="SSH Git Private Key"
@@ -165,7 +192,7 @@ const workspace: Workspace | null = id
           workspace?.envVars?.map(({ key, value }) => ({
             key,
             value: decrypt(value),
-          })) ?? null
+          })) ?? null,
         )}
       >
         <label>
