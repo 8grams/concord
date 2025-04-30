@@ -25,7 +25,7 @@ try {
     );
     branches = branchesStdout
       .split("\n")
-      .filter(branch => branch.trim() !== "" && !branch.startsWith("concordproposal"));
+      .filter(branch => branch.trim() !== "" && !branch.startsWith("concord-proposal"));
 
     const currentBranch = Astro.cookies.get("currentBranch")?.value ?? workspace?.currentBranch;
 

@@ -22,8 +22,6 @@ if (Astro.request.method === "POST") {
   switch (body.get("action")) {
     case "Approve":
       // run terraform apply -auto-approve
-      proposal.status = "Applied";
-      await proposal.save();
       break;
     case "Reject":
       proposal.status = "Rejected";
@@ -111,6 +109,18 @@ const comments = await Db.getRepository(Comment).find({
       x-init="window.createTerminal($el)"
     >
     </div>
+    <dialog id="confirmModal" class="modal">
+      <div class="modal-box">
+        <h3 class="font-bold text-lg">Confirm Apply</h3>
+        <p class="py-4">Are you sure you want to apply these changes? This action cannot be undone.</p>
+        <div class="modal-action">
+          <form method="dialog">
+            <button class="btn">Cancel</button>
+            <button class="btn btn-primary" id="confirmApply">Apply</button>
+          </form>
+        </div>
+      </div>
+    </dialog>
     <h1 class="font-bold text-lg">Discussions</h1>
     <ul class="space-y-4" x-data>
       {
@@ -257,7 +267,7 @@ const comments = await Db.getRepository(Comment).find({
     async function runTerraformApply() {
       terminal.clear();
       terminal.write(
-        "\x1b[1;32m$ terraform apply -auto-approve\x1b[0m\r\n\r\n",
+        "\x1b[1;32m$ terraform apply\x1b[0m\r\n",
       );
 
       let allOutput = "";
@@ -302,11 +312,20 @@ const comments = await Db.getRepository(Comment).find({
       .querySelector('button[value="Approve"]')
       .addEventListener("click", (e) => {
         e.preventDefault();
+        const modal = document.getElementById('confirmModal');
+        modal.showModal();
+      });
+
+    document
+      .getElementById('confirmApply')
+      .addEventListener("click", () => {
+        const modal = document.getElementById('confirmModal');
+        modal.close();
         runTerraformApply();
       });
   };
   document.head.appendChild(script);
 </script>
 <script>
-  import "./trix.client";
+  import "./../utils/trix.client";
 </script>

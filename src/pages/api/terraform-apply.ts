@@ -42,7 +42,8 @@ export const POST: APIRoute = async ({ request }) => {
       terraformProcess.on("close", async () => {
         // Update the plan record with the final output
         await Db.getRepository(Proposal).update(proposalId, {
-          lastPlanOutput: output
+          lastPlanOutput: output,
+          status: "Applied"
         });
         controller.close();
       });
