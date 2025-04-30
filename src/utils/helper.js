@@ -41,7 +41,7 @@ export function generateSecrets(workspaceId) {
   const secrets = workspace?.secrets;
   
   const exportSecrets = Object.entries(secrets || {})
-  .map(([idx, val]) => `export ${val['key']}=${decrypt(val['value'])}`)
+  .map(([idx, val]) => `export TF_VAR_${val['key']}=${decrypt(val['value'])}`)
         .join(' && ');
 
   return exportSecrets;
