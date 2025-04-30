@@ -141,6 +141,16 @@ const workspace: Workspace | null = id
         />
       </label>
       <label class="floating-label">
+        <span>Output Directory</span>
+        <input
+          type="text"
+          placeholder="Output Directory"
+          class="input input-md w-full"
+          name="outputDirectory"
+          value={workspace?.outputDirectory}
+        />
+      </label>
+      <label class="floating-label">
         <span>Main Branch</span>
         <input
           type="text"

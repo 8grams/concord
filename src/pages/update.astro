@@ -7,14 +7,15 @@ import hcl from "hcl2-parser";
 import { parser } from "./_type-parser";
 import { execSync } from "child_process";
 
-const workspaceId = parseInt(Astro.cookies.get("workspace").value);
+const workspaceId = parseInt(Astro.cookies.get("workspace")?.value);
+
+if (!workspaceId) {
+  return Astro.redirect("/workspaces");
+}
+
 const workspace = await Db.getRepository(Workspace).findOneBy({
   id: workspaceId,
 });
-
-if (!workspace) {
-  throw new Error("Workspace not found");
-}
 
 const gitRepo = `data/repositories/${workspaceId}`;
 
@@ -76,7 +77,7 @@ if (Astro.request.method === "POST") {
       // sync git
       execSync(`
         cd data/repositories/${workspaceId} && \
-        git pull origin ${workspace.mainBranch}
+        git pull origin ${workspace?.mainBranch}
       `);
       fs.writeFileSync(tfVarsFile, config);
 
@@ -85,7 +86,7 @@ if (Astro.request.method === "POST") {
         cd data/repositories/${workspaceId} &&
         git add . && \
         git commit -m "Update terraform.tfvars" && \
-        git push origin ${workspace.mainBranch}
+        git push origin ${workspace?.mainBranch}
       `);
 
       return Astro.redirect("/update");

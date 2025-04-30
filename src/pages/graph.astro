@@ -26,7 +26,7 @@ let workspace: Workspace | null = null;
 
 try {
   if (!Astro.cookies.get("workspace")) {
-    throw new Error("No workspace selected. Go to Setting page and create a Workspace first.");
+    return Astro.redirect("/workspaces");
   }
 
   const workspaceId = Astro.cookies.get("workspace")?.value;
@@ -82,7 +82,7 @@ try {
   });
 } catch (err) {
   console.log(err);
-  error = "Something went wrong.";
+  error = "No workspace selected. Go to Setting page and create a Workspace first";
 }
 ---
 
