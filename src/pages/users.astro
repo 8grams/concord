@@ -10,13 +10,14 @@ const users = await Db.getRepository(User).find();
 
 <WorkspacesLayout current="users">
   <div class="self-end" x-data>
-    <button class="btn" x-on:click="$refs.dialog.showModal()">Create</button>
+    <button class="btn btn-primary" x-on:click="$refs.dialog.showModal()">Create</button>
     <NewUser />
   </div>
   <table class="table">
     <thead>
       <tr>
         <th>Email</th>
+        <th>Role</th>
         <th></th>
       </tr>
     </thead>
@@ -25,6 +26,7 @@ const users = await Db.getRepository(User).find();
         users.map((user) => (
           <tr>
             <td>{user.email}</td>
+            <td>{user.role}</td>
             <td class="w-1 whitespace-nowrap">
               <div class="inline-block" x-data>
                 <button

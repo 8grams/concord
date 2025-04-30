@@ -91,26 +91,30 @@ const comments = await Db.getRepository(Comment).find({
         <span class="text-base-content/80">{ proposal.createdBy?.name }</span>
       </div>
       <div class="flex items-center gap-2">
-        <span class="font-medium">{ proposal.status === "On Review" ? "Created at:" : proposal.status === "Applied" ? "Applied at:" : "Rejected at:" }</span>
+        <span class="font-medium">{ proposal.status === "On Review" ? "Created at:" : proposal.status === "Applied" ? "Approved at:" : "Rejected at:" }</span>
         <span class="text-base-content/80">{ proposal.status === "On Review" ? proposal.createdAt.toLocaleString() : proposal.status === "Applied" ? proposal.updatedAt.toLocaleString() : proposal.updatedAt.toLocaleString() }</span>
       </div>
       <div class="flex items-center gap-2">
-        <span class="font-medium">{ proposal.status === "On Review" && proposal.lastPlanExecutor ? "Last Planned by:" : proposal.status === "Applied" && proposal.applyExecutor ? "Applied by:" : proposal.status === "Rejected" && proposal.rejector ? "Rejected by:" : "" }</span>
+        <span class="font-medium">{ proposal.status === "On Review" && proposal.lastPlanExecutor ? "Last Planned by:" : proposal.status === "Applied" && proposal.applyExecutor ? "Approved by:" : proposal.status === "Rejected" && proposal.rejector ? "Rejected by:" : "" }</span>
         <span class="text-base-content/80">{ proposal.status === "On Review" ? proposal.lastPlanExecutor?.name : proposal.status === "Applied" ? proposal.applyExecutor?.name : proposal.rejector?.name }</span>
       </div>
     </div>
     {
       proposal.status === "On Review" ? (
         <form class="flex gap-4" method="post" id="proposal-actions-form">
-          <button class="btn btn-primary" name="action" value="Approve">
-            Approve
-          </button>
-          <button class="btn btn-error" name="action" value="Reject">
-            Reject
-          </button>
-          <button class="btn btn-accent" name="action" value="Plan">
-            Run Plan
-          </button>
+          {
+            Astro.locals.user.role === "maintainer" && (
+              <button class="btn btn-primary" name="action" value="Approve">Approve</button>
+              <button class="btn btn-error" name="action" value="Reject">Reject</button>
+            )
+          }
+          {
+            Astro.locals.user.role === "editor" && (  
+              <button class="btn btn-accent" name="action" value="Plan">
+                Run Plan
+              </button>
+            )
+          }
         </form>
       ) : proposal.status === "Applied" ? (
         <div class="alert alert-info">

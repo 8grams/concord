@@ -30,9 +30,11 @@ user.picture = picture;
 await user.save();
 
 Astro.session.set("user", {
+  id: user.id,
   email,
   name,
   picture,
+  role: user.role,
 });
 
 return Astro.redirect("/graph");

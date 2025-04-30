@@ -44,6 +44,9 @@ export class Workspace extends BaseEntity {
 
   @Column("json", { nullable: true })
   envVars: { key: string; value: string }[];
+
+  @Column("json", { nullable: true })
+  secrets: { key: string; value: string }[];
 }
 
 @Entity()
@@ -59,6 +62,9 @@ export class User extends BaseEntity {
 
   @Column("text", { nullable: true })
   picture: string;
+
+  @Column("text", { nullable: true })
+  role: "maintainer" | "editor" | "viewer";
 }
 
 @Entity()
@@ -140,6 +146,7 @@ export const admin = {
   id: 10001,
   email: "admin@admin",
   name: "Admin",
+  role: "maintainer",
   picture:
     "https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp",
 };

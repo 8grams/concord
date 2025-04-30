@@ -10,11 +10,13 @@ if (Astro.request.method === "POST") {
       id,
       {
         email: data.get("email") as string,
+        role: data.get("role") as any,
       }
     );
   } else {
     await repository.insert({
       email: data.get("email") as string,
+      role: data.get("role") as any,
     });
   }
   return Astro.redirect("/users");
@@ -31,7 +33,7 @@ const user: User | null = id
   <div class="modal-box">
     <form class="flex flex-col gap-4" action="/new-user" method="post">
       <input type="hidden" name="id" value={user?.id} />
-      <h1 class="text-lg font-bold">New Eligible User Login</h1>
+      <h1 class="text-lg font-bold">{ user ? "Edit" : "New"} Eligible User Login</h1>
       <label class="floating-label">
         <span>Email</span>
         <input
@@ -42,6 +44,14 @@ const user: User | null = id
           value={user?.email}
           autofocus
         />
+      </label>
+      <label class="floating-label">
+        <span>Role</span>
+        <select class="select select-md w-full" name="role">
+          <option value="maintainer" selected={user?.role === "maintainer"}>Maintainer</option>
+          <option value="editor" selected={user?.role === "editor"}>Editor</option>
+          <option value="viewer" selected={user?.role === "viewer"}>Viewer</option>
+        </select>
       </label>
       <div class="mt-4 flex gap-2">
         <button class="btn btn-primary">Save</button>

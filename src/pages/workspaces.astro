@@ -10,7 +10,7 @@ const workspaces = await Db.getRepository(Workspace).find();
 
 <WorkspacesLayout current="workspaces">
   <div class="self-end" x-data>
-    <button class="btn" x-on:click="$refs.dialog.showModal()">Create</button>
+    <button class="btn btn-primary" x-on:click="$refs.dialog.showModal()">Create</button>
     <NewWorkspace />
   </div>
   <table class="table">

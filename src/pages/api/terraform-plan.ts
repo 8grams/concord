@@ -1,23 +1,20 @@
 import { spawn } from "node:child_process";
 import type { APIRoute } from "astro";
 import { Db, Proposal, Workspace } from "../../db";
-import { decrypt } from "../../utils/crypto";
+import { generateEnvVars, generateSecrets } from "../../utils/helper";
 
 export const POST: APIRoute = async ({ request }) => {
   const { workspaceId, mainDirectory, proposalId, userId } = await request.json();
-  const workspace = await Db.getRepository(Workspace).findOne({ where: { id: workspaceId } });
-  const envVars = workspace?.envVars;
 
   const stream = new ReadableStream({
     start(controller) {
       // Prepare environment variables as export commands
-      const exportCommands = Object.entries(envVars || {})
-        .map(([idx, val]) => `export ${val['key']}=${decrypt(val['value'])}`)
-        .join(' && ');
-
+      const exportCommands = generateEnvVars(workspaceId);
+      const exportSecrets = generateSecrets(workspaceId);
+      
       // Construct the full command
       const fullCommand = exportCommands 
-        ? `${exportCommands} && terraform init && terraform plan`
+        ? ` ${exportCommands} && ${exportSecrets} && terraform init && terraform plan`
         : 'terraform init && terraform plan';
 
       // Run both commands in sequence using shell

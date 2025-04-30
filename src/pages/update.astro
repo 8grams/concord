@@ -301,11 +301,15 @@ const tfVarDefinitionParsed = hcl.parseToObject(tfVarDefinitionContent);
         );
       })
     }
-    <div class="flex gap-2 mt-4">
-      <button class="btn btn-primary" name="action" value="Save">Save</button>
-      <button class="btn btn-accent" name="action" value="Propose">
+    {
+      (Astro.locals.user.role === "maintainer" || Astro.locals.user.role === "editor") && (
+        <div class="flex gap-2 mt-4">
+          <button class="btn btn-primary" name="action" value="Save">Save</button>
+          <button class="btn btn-accent" name="action" value="Propose">
         Propose
-      </button>
-    </div>
+          </button>
+        </div>
+      )
+    }
   </form>
 </GraphLayout>
