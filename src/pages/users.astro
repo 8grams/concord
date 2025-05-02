@@ -10,8 +10,8 @@ const users = await Db.getRepository(User).find();
 
 <WorkspacesLayout current="users">
   <div class="self-end" x-data>
-    <button class="btn btn-primary" x-on:click="$refs.dialog.showModal()">Create</button>
-    <NewUser />
+    <button class="btn btn-primary" x-on:click={`document.getElementById('user-dialog-new').showModal()`}>Create</button>
+    <NewUser id={0} />
   </div>
   <table class="table">
     <thead>
@@ -27,11 +27,13 @@ const users = await Db.getRepository(User).find();
           <tr>
             <td>{user.email}</td>
             <td>{user.role}</td>
+            {
+              (user.email !== 'admin@admin' && Astro.locals.user.email !== user.email) && (
             <td class="w-1 whitespace-nowrap">
               <div class="inline-block" x-data>
                 <button
                   class="btn btn-circle btn-ghost"
-                  x-on:click="$refs.dialog.showModal()"
+                  x-on:click={`document.getElementById('user-dialog-${user.id}').showModal()`}
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -49,10 +51,11 @@ const users = await Db.getRepository(User).find();
                 </button>
                 <NewUser id={user.id} />
               </div>
-              <div class="inline-block" x-data>
-                <button
-                  class="btn btn-circle btn-ghost"
-                  x-on:click="$refs.dialog.showModal()"
+              { (Astro.locals.isAdmin) && (
+                <div class="inline-block" x-data>
+                  <button
+                    class="btn btn-circle btn-ghost"
+                  x-on:click={`document.getElementById('delete-dialog-${user.id}').showModal()`}
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -70,7 +73,9 @@ const users = await Db.getRepository(User).find();
                 </button>
                 <DeleteUser id={user.id} />
               </div>
+              )}
             </td>
+            )}
           </tr>
         ))
       }

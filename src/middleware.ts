@@ -16,10 +16,6 @@ export const onRequest: MiddlewareHandler = async (Astro, next) => {
       if (
         !isAdmin &&
         [
-          "/workspaces",
-          "/users",
-          "/new-workspace",
-          "/new-user",
           "/delete-workspace",
           "/delete-user",
         ].includes(Astro.url.pathname)

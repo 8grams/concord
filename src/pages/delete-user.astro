@@ -12,7 +12,7 @@ if (Astro.request.method === "POST") {
 const { id } = Astro.props;
 ---
 
-<dialog x-ref="dialog" class="modal">
+<dialog id={`delete-dialog-${id}`} class="modal">
   <div class="modal-box w-sm">
     <form class="flex flex-col gap-4" action="/delete-user" method="post">
       <input type="hidden" name="id" value={id} />
@@ -23,7 +23,7 @@ const { id } = Astro.props;
         <button
           class="btn btn-secondary"
           type="button"
-          x-on:click="$refs.dialog.close()"
+          x-on:click="$el.closest('dialog').close()"
         >
           No
         </button>

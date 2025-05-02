@@ -1,7 +1,9 @@
 ---
+import { promisify } from "util";
 import { Db, Proposal as ProposalTable, Comment, Workspace } from "../db";
 import HomeLayout from "../layouts/HomeLayout.astro";
 import { getBranchURL } from "../utils/helper";
+import { exec as execCPS } from "child_process";
 
 const workspaceId = parseInt(Astro.cookies.get("workspace").value);
 const workspace = await Db.getRepository(Workspace).findOneBy({
@@ -21,6 +23,14 @@ const proposal = await Db.getRepository(ProposalTable).findOne({
     rejector: true,
   },
 });
+
+const exec = promisify(execCPS);
+await exec(
+  `git checkout ${proposal.branch}`,
+  { cwd: `data/repositories/${workspaceId}` }
+);
+
+Astro.cookies.set("planBranch", proposal.branch);
 
 if (Astro.request.method === "POST") {
   const body = await Astro.request.formData();

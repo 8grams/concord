@@ -51,9 +51,10 @@ const workspaces = await Db.getRepository(Workspace).find();
                 </button>
                 <NewWorkspace id={workspace.id} />
               </div>
-              <div class="inline-block" x-data>
-                <button
-                  class="btn btn-circle btn-ghost"
+              { Astro.locals.isAdmin && (
+                <div class="inline-block" x-data>
+                  <button
+                    class="btn btn-circle btn-ghost"
                   x-on:click="$refs.dialog.showModal()"
                 >
                   <svg
@@ -70,8 +71,9 @@ const workspaces = await Db.getRepository(Workspace).find();
                     />
                   </svg>
                 </button>
-                <DeleteWorkspace id={workspace.id} />
-              </div>
+                  <DeleteWorkspace id={workspace.id} />
+                </div>
+              )}
             </td>
           </tr>
         ))

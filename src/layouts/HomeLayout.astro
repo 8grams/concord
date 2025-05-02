@@ -51,7 +51,7 @@ const currentWorkspace = workspaces.find(
     </div>
     <div class="navbar-end">
       {
-        (Astro.url.pathname === "/graph" || Astro.url.pathname === "/update") && (
+        (Astro.url.pathname === "/graph" || Astro.url.pathname === "/update" || Astro.url.pathname === "/proposal") && (
           <a href="/refresh-git" class="btn btn-ghost btn-circle">
             <button class="btn btn-ghost btn-circle">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
@@ -62,7 +62,7 @@ const currentWorkspace = workspaces.find(
         )
       }
       {
-        Astro.locals.isAdmin && (
+        (Astro.locals.isAdmin || Astro.locals.user.role === "maintainer") && (
           <a href="/workspaces" class="btn btn-ghost btn-circle">
             <svg
               xmlns="http://www.w3.org/2000/svg"

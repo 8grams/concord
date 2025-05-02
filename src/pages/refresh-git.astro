@@ -1,5 +1,6 @@
 ---
 import { execSync } from "node:child_process";
+import { Db, Workspace } from "../db";
 
 const workspaceId = parseInt(Astro.cookies.get("workspace")?.value)
 
@@ -7,10 +8,21 @@ if (!workspaceId) {
   return Astro.redirect("/workspaces");
 }
 
-execSync(`cd data/repositories/${workspaceId} && git pull origin`);
+const workspace = await Db.getRepository(Workspace).findOneBy({
+  id: workspaceId,
+});
+
+const referer = Astro.request.headers.get("referer");
+const refererUrl = new URL(referer);
+const pathname = refererUrl.pathname;
+
+if (refererUrl.pathname === "/proposal") {
+  execSync(`cd data/repositories/${workspaceId} && git pull origin ${Astro.cookies.get("planBranch")?.value ?? workspace.currentBranch}`); 
+} else {
+  execSync(`cd data/repositories/${workspaceId} && git pull origin ${workspace.currentBranch}`);
+}
 
 // redirect back to previous page
-const referer = Astro.request.headers.get("referer");
 if (referer) {
   return Astro.redirect(referer);
 }

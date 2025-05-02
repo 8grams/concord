@@ -4,19 +4,22 @@ import { Db, User } from "../db";
 if (Astro.request.method === "POST") {
   const repository = Db.getRepository(User);
   const data = await Astro.request.formData();
-  const id = parseInt(data.get("id") as string);
-  if (id) {
+  const id = data.get("id");
+  const email = data.get("email") as string;
+  const role = data.get("role") as any;
+
+  if (id && id !== "undefined") {
     await repository.update(
-      id,
+      { id: parseInt(id as string) },
       {
-        email: data.get("email") as string,
-        role: data.get("role") as any,
+        email,
+        role,
       }
     );
   } else {
     await repository.insert({
-      email: data.get("email") as string,
-      role: data.get("role") as any,
+      email,
+      role,
     });
   }
   return Astro.redirect("/users");
@@ -25,14 +28,14 @@ if (Astro.request.method === "POST") {
 const { id } = Astro.props;
 
 const user: User | null = id
-  ? await Db.getRepository(User).findOneBy(id)
+  ? await Db.getRepository(User).findOneBy({ id: parseInt(id as string) })
   : null;
 ---
 
-<dialog x-ref="dialog" class="modal">
+<dialog id={`user-dialog-${id || 'new'}`} class="modal">
   <div class="modal-box">
     <form class="flex flex-col gap-4" action="/new-user" method="post">
-      <input type="hidden" name="id" value={user?.id} />
+      <input type="hidden" name="id" value={user?.id || ''} />
       <h1 class="text-lg font-bold">{ user ? "Edit" : "New"} Eligible User Login</h1>
       <label class="floating-label">
         <span>Email</span>
@@ -58,7 +61,7 @@ const user: User | null = id
         <button
           class="btn btn-secondary"
           type="button"
-          x-on:click="$refs.dialog.close()"
+          x-on:click="$el.closest('dialog').close()"
         >
           Cancel
         </button>
