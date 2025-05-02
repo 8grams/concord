@@ -1,5 +1,7 @@
 ---
 Astro.session.delete("user");
+Astro.cookies.delete("workspace");
+Astro.cookies.delete("planBranch");
 if (Astro.locals.isAdmin) {
   return Astro.redirect("/login-admin");
 } else {

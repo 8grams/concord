@@ -6,15 +6,15 @@ import { generateEnvVars, generateSecrets } from "../../utils/helper";
 export const POST: APIRoute = async ({ request }) => {
   const { workspaceId, mainDirectory, proposalId, userId } = await request.json();
 
+  // Prepare environment variables as export commands
+  const exportCommands = await generateEnvVars(workspaceId);
+  const exportSecrets = await generateSecrets(workspaceId);
+
   const stream = new ReadableStream({
     start(controller) {
-      // Prepare environment variables as export commands
-      const exportCommands = generateEnvVars(workspaceId);
-      const exportSecrets = generateSecrets(workspaceId);
-      
       // Construct the full command
       const fullCommand = exportCommands 
-        ? ` ${exportCommands} && ${exportSecrets} && terraform init && terraform plan`
+        ? `${exportCommands} ${exportSecrets} terraform init && terraform plan`
         : 'terraform init && terraform plan';
 
       // Run both commands in sequence using shell

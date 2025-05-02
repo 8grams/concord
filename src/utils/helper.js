@@ -1,4 +1,4 @@
-import { Workspace } from "../db";
+import { Db, Workspace } from "../db";
 import { decrypt } from "./crypto";
 
 export function getCommitURL(gitURL, hash) {
@@ -25,24 +25,32 @@ export function getBranchURL(gitURL, branch) {
   return `https://${host}/${path}/-/tree/${branch}`;
 }
 
-export function generateEnvVars(workspaceId) {
-  const workspace = Db.getRepository(Workspace).findOne({ where: { id: workspaceId } });
+export async function generateEnvVars(workspaceId) {
+  const workspace = await Db.getRepository(Workspace).findOne({ where: { id: workspaceId } });
   const envVars = workspace?.envVars;
-  
-  const exportCommands = Object.entries(envVars || {})
+
+  let exportCommands = Object.entries(envVars || {})
   .map(([idx, val]) => `export ${val['key']}=${decrypt(val['value'])}`)
         .join(' && ');
+
+  if (exportCommands.length > 0) {
+    exportCommands = `${exportCommands} &&`;
+  }
 
   return exportCommands;
 }
 
-export function generateSecrets(workspaceId) {
-  const workspace = Db.getRepository(Workspace).findOne({ where: { id: workspaceId } });
+export async function generateSecrets(workspaceId) {
+  const workspace = await Db.getRepository(Workspace).findOne({ where: { id: workspaceId } });
   const secrets = workspace?.secrets;
   
-  const exportSecrets = Object.entries(secrets || {})
+  let exportSecrets = Object.entries(secrets || {})
   .map(([idx, val]) => `export TF_VAR_${val['key']}=${decrypt(val['value'])}`)
         .join(' && ');
+
+  if (exportSecrets.length > 0) {
+    exportSecrets = `${exportSecrets} &&`;
+  }
 
   return exportSecrets;
 }
