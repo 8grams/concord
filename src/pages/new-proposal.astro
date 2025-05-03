@@ -23,8 +23,25 @@ const repository = Db.getRepository(Proposal);
 const branch = `concord-proposal-${hash.slice(0, 6)}`;
 
 await new Promise((resolve, reject) => {
-  exec(
-    `GIT_SSH_COMMAND="ssh -i ${tempKeyPath} -o IdentitiesOnly=yes -o StrictHostKeyChecking=no" git checkout ${hash} && git checkout -b ${branch} && GIT_SSH_COMMAND="ssh -i ${tempKeyPath} -o IdentitiesOnly=yes -o StrictHostKeyChecking=no" git push origin ${branch}`,
+  exec(`
+  GIT_SSH_COMMAND="ssh -i ${tempKeyPath} -o IdentitiesOnly=yes -o StrictHostKeyChecking=no" bash -c '
+    git checkout ${hash}
+  
+    if git show-ref --verify --quiet refs/heads/${branch}; then
+      echo "Local branch ${branch} already exists, checking it out..."
+      git checkout ${branch}
+    else
+      echo "Creating new local branch ${branch}..."
+      git checkout -b ${branch}
+    fi
+  
+    if git ls-remote --exit-code --heads origin ${branch}; then
+      echo "Remote branch ${branch} already exists, skipping push."
+    else
+      echo "Pushing new branch ${branch} to origin..."
+      git push origin ${branch}
+    fi
+  '`,
     { cwd: `data/repositories/${workspaceId}` },
     (err, stdout, stderr) => {
       if (err) {
@@ -47,6 +64,7 @@ await new Promise((resolve, reject) => {
           resolve(stdout);
         })
         .catch(reject);
+        
     }
   );
 });

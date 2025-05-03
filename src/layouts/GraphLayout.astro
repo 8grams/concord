@@ -93,13 +93,15 @@ try {
     >
       Graph
     </a>
-    <a
-      class="tab"
-      href="/update"
+    {workspace?.type === "terraform" && (
+      <a
+        class="tab"
+        href="/update"
       class:list={[current === "update" && "tab-active"]}
     >
-      Variables
-    </a>
+        Variables
+      </a>
+    )}
     <a
       class="tab"
       href="/secrets"
@@ -107,13 +109,15 @@ try {
     >
       Secrets
     </a>
-    <a
-      class="tab"
-      href="/outputs"
+    {workspace?.type === "terraform" && (
+      <a
+        class="tab"
+        href="/outputs"
       class:list={[current === "outputs" && "tab-active"]}
     >
-      Outputs
-    </a>
+        Outputs
+      </a>
+    )}
   </div>
   <div class="p-4">
     <slot />

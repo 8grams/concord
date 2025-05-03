@@ -125,11 +125,11 @@ const workspace: Workspace | null = id
   });
 </script>
 
-<dialog x-ref="dialog" class="modal">
+<dialog x-ref="tankaDialog" class="modal">
   <div class="modal-box">
-    <form class="flex flex-col gap-4" action="/new-workspace" method="post">
+    <form class="flex flex-col gap-4" action="/tanka/new-workspace" method="post">
       <input type="hidden" name="id" value={workspace?.id} />
-      <h1 class="text-lg font-bold">New Workspace</h1>
+      <h1 class="text-lg font-bold">{workspace?.id ? "Edit" : "New"} Tanka Workspace</h1>
       <label class="floating-label">
         <span>Name</span>
         <input
@@ -161,16 +161,6 @@ const workspace: Workspace | null = id
         />
       </label>
       <label class="floating-label">
-        <span>Output Directory</span>
-        <input
-          type="text"
-          placeholder="Output Directory"
-          class="input input-md w-full"
-          name="outputDirectory"
-          value={workspace?.outputDirectory}
-        />
-      </label>
-      <label class="floating-label">
         <span>Main Branch</span>
         <input
           type="text"
@@ -186,6 +176,7 @@ const workspace: Workspace | null = id
           placeholder="SSH Git Private Key"
           class="textarea textarea-md w-full"
           name="privateKey"
+          rows={8}
           set:text={decrypt(workspace?.privateKey)}
         />
       </label>
@@ -195,6 +186,7 @@ const workspace: Workspace | null = id
           placeholder="Kubeconfig"
           class="textarea textarea-md w-full"
           name="kubeconfig"
+          rows={8}
           set:text={decrypt(workspace?.kubeconfig)}
         />
       </label>
@@ -278,7 +270,7 @@ const workspace: Workspace | null = id
         <button
           class="btn btn-secondary"
           type="button"
-          x-on:click="$refs.dialog.close()"
+          x-on:click="$refs.tankaDialog.close()"
         >
           Cancel
         </button>

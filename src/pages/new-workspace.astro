@@ -1,5 +1,5 @@
 ---
-import { rm, write } from "node:fs";
+import { rm } from "node:fs";
 import { exec } from "node:child_process";
 import { tmpdir } from "os";
 import { join } from "path";
@@ -123,11 +123,11 @@ const workspace: Workspace | null = id
   });
 </script>
 
-<dialog x-ref="dialog" class="modal">
+<dialog x-ref="terraformDialog" class="modal">
   <div class="modal-box">
     <form class="flex flex-col gap-4" action="/new-workspace" method="post">
       <input type="hidden" name="id" value={workspace?.id} />
-      <h1 class="text-lg font-bold">New Workspace</h1>
+      <h1 class="text-lg font-bold">{workspace?.id ? "Edit" : "New"} Terraform Workspace</h1>
       <label class="floating-label">
         <span>Name</span>
         <input
@@ -184,6 +184,7 @@ const workspace: Workspace | null = id
           placeholder="SSH Git Private Key"
           class="textarea textarea-md w-full"
           name="privateKey"
+          rows={8}
           set:text={decrypt(workspace?.privateKey)}
         />
       </label>
@@ -267,7 +268,7 @@ const workspace: Workspace | null = id
         <button
           class="btn btn-secondary"
           type="button"
-          x-on:click="$refs.dialog.close()"
+          x-on:click="$refs.terraformDialog.close()"
         >
           Cancel
         </button>
