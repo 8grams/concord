@@ -1,10 +1,20 @@
 import { spawn } from "node:child_process";
 import type { APIRoute } from "astro";
-import { Db, Proposal } from "../../db";
+import { Db, Proposal, Workspace } from "../../db";
 import { generateEnvVars, generateSecrets } from "../../utils/helper";
-
+import { chmodSync, writeFileSync, unlinkSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { decrypt } from "../../utils/crypto";
 export const POST: APIRoute = async ({ request }) => {
-  const { workspaceId, mainDirectory, proposalId, planEnvironment, userId } = await request.json();
+  const { workspaceId, mainDirectory, proposalId, environment, userId } = await request.json();
+
+  const workspace = await Db.getRepository(Workspace).findOne({ where: { id: workspaceId } });
+  const kubeconfig = decrypt(workspace.kubeconfig);
+
+  const tempKubeconfigPath = join(tmpdir(), `kubeconfig-${Date.now()}`);
+  writeFileSync(tempKubeconfigPath, kubeconfig);
+  chmodSync(tempKubeconfigPath, 0o600);
 
   // Prepare environment variables as export commands
   const exportCommands = await generateEnvVars(workspaceId);  
@@ -15,8 +25,8 @@ export const POST: APIRoute = async ({ request }) => {
 
       // Construct the full command
       const fullCommand = exportCommands 
-        ? ` PAGER=cat ${exportCommands} ${exportSecrets} tanka diff ${planEnvironment}`
-        : ` PAGER=cattanka diff ${planEnvironment}`;
+        ? ` jb install && KUBECONFIG=${tempKubeconfigPath} ${exportCommands} ${exportSecrets} tk diff environments/${environment} --color=always`
+        : ` jb install && KUBECONFIG=${tempKubeconfigPath} tk diff environments/${environment} --color=always`;
 
       // Run both commands in sequence using shell
       const tankaProcess = spawn("sh", ["-c", fullCommand], {
@@ -41,10 +51,10 @@ export const POST: APIRoute = async ({ request }) => {
         // Update the plan record with the final output
         await Db.getRepository(Proposal).update(proposalId, {
           lastPlanOutput: output,
-          status: "Applied",
-          applyExecutor: userId
+          lastPlanExecutor: userId
         });
         controller.close();
+        unlinkSync(tempKubeconfigPath);
       });
     }
   });

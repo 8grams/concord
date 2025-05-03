@@ -10,8 +10,12 @@ const workspaceId = parseInt(Astro.cookies.get("workspace").value);
 const workspace = await Db.getRepository(Workspace).findOne({
   where: { id: workspaceId },
 });
-const environments = readdirSync(`data/repositories/${workspace.id}/${workspace.mainDirectory}/environments`)
-  .filter(dir => statSync(`data/repositories/${workspace.id}/${workspace.mainDirectory}/environments/${dir}`).isDirectory());
+
+let environments = [];
+if (workspace.type === "tanka") { 
+  environments = readdirSync(`data/repositories/${workspace.id}/${workspace.mainDirectory}/environments`)
+    .filter(dir => statSync(`data/repositories/${workspace.id}/${workspace.mainDirectory}/environments/${dir}`).isDirectory());
+}
 const hash = Astro.url.searchParams.get("hash");
 
 const proposal = await Db.getRepository(ProposalTable).findOne({
@@ -121,7 +125,6 @@ const comments = await Db.getRepository(Comment).find({
         <span class="font-medium">{ proposal.status === "On Review" && proposal.lastPlanExecutor ? "Last Planned by:" : proposal.status === "Applied" && proposal.applyExecutor ? "Approved by:" : proposal.status === "Rejected" && proposal.rejector ? "Rejected by:" : "" }</span>
         <span class="text-base-content/80">{ proposal.status === "On Review" ? proposal.lastPlanExecutor?.name : proposal.status === "Applied" ? proposal.applyExecutor?.name : proposal.rejector?.name }</span>
       </div>
-
     {
       workspace.type === "tanka" && (
         <div class="flex items-center gap-2">
@@ -166,7 +169,7 @@ const comments = await Db.getRepository(Comment).find({
     </div>
     {
       proposal.status === "On Review" ? (
-        <form class="flex gap-4" method="post" id="proposal-actions-form">
+        <form class="flex gap-4" method="post" id="proposal-actions-form" x-data="{ isLocked: true }" x-show="isLocked">
           {
             (Astro.locals.user.role === "maintainer" && proposal.lastPlanOutput !== null) && (
               <button class="btn btn-primary" name="action" value={ workspace.type === "terraform" ? "Approve" : "TankaApprove" }>Approve</button>
@@ -280,6 +283,7 @@ const comments = await Db.getRepository(Comment).find({
     proposalId: proposal.id,
     lastPlanOutput: proposal.lastPlanOutput,
     userId: Astro.locals.user.id,
+    type: workspace.type,
   }}
 >
   // Load xterm.js from CDN
@@ -336,7 +340,7 @@ const comments = await Db.getRepository(Comment).find({
 
     // Show last plan output if it exists
     if (lastPlanOutput) {
-      terminal.write("\x1b[1;32mLast Output:\x1b[0m\r\n");
+      terminal.write("\x1b[1;32mLast Output:\x1b[0m\r\n\r\n");
       terminal.write(lastPlanOutput.replace(/\n/g, "\r\n"));
     }
 
@@ -375,7 +379,10 @@ const comments = await Db.getRepository(Comment).find({
 
     async function runTankaPlan() {
       terminal.clear();
-      terminal.write("\x1b[1;32m$ tanka plan\x1b[0m\r\n");
+      terminal.write("\x1b[1;32m$ tanka plan\x1b[0m\r\n\r\n");
+
+      const select = document.getElementById('environment-select');
+      const environment = select ? select.value : '';
 
       const response = await fetch("/api/tanka-plan", {
         method: "POST",
@@ -386,6 +393,7 @@ const comments = await Db.getRepository(Comment).find({
           workspaceId,
           mainDirectory,
           proposalId,
+          environment,
           userId,
         }),
       });
@@ -400,7 +408,6 @@ const comments = await Db.getRepository(Comment).find({
           break;
         }
         const text = decoder.decode(value);
-        // Ensure proper line breaks and left alignment
         terminal.write(text.replace(/\n/g, "\r\n"));
       }
     }
@@ -445,11 +452,10 @@ const comments = await Db.getRepository(Comment).find({
 
     async function runTankaApply() {
       terminal.clear();
-      terminal.write(
-        "\x1b[1;32m$ tanka apply\x1b[0m\r\n",
-      );
+      terminal.write("\x1b[1;32m$ tanka apply\x1b[0m\r\n\r\n");
 
-      let allOutput = "";
+      const select = document.getElementById('environment-select');
+      const environment = select ? select.value : '';
 
       const response = await fetch("/api/tanka-apply", {
         method: "POST",
@@ -460,6 +466,7 @@ const comments = await Db.getRepository(Comment).find({
           workspaceId,
           mainDirectory,
           proposalId,
+          environment,
           userId,
         }),
       });
@@ -474,73 +481,83 @@ const comments = await Db.getRepository(Comment).find({
           break;
         }
         const text = decoder.decode(value);
-        allOutput += text;
-        // Ensure proper line breaks and left alignment
         terminal.write(text.replace(/\n/g, "\r\n"));
       }
     }
 
     // Add event listeners to the buttons
-    document
-      .querySelector('button[value="Plan"]')
-      .addEventListener("click", (e) => {
-        e.preventDefault();
-        runTerraformPlan();
-      });
+    if (type === "terraform") {
+      const planButton = document.querySelector('button[value="Plan"]');
+      if (planButton) {
+        planButton.addEventListener("click", (e) => {
+          e.preventDefault();
+          runTerraformPlan();
+        });
+      }
 
-    document
-      .querySelector('button[value="TankaPlan"]')
-      .addEventListener("click", (e) => {
-        e.preventDefault();
-        runTankaPlan();
-      });
+      const approveButton = document.querySelector('button[value="Approve"]');
+      if (approveButton) {
+        approveButton.addEventListener("click", (e) => {
+          e.preventDefault();
+          const modal = document.getElementById('confirmModal');
+          modal.showModal();
+        });
+      }
 
-    document
-      .querySelector('button[value="Approve"]')
-      .addEventListener("click", (e) => {
-        e.preventDefault();
-        const modal = document.getElementById('confirmModal');
-        modal.showModal();
-      });
+      const confirmApplyButton = document.getElementById('confirmApply');
+      if (confirmApplyButton) {
+        confirmApplyButton.addEventListener("click", () => {
+          const modal = document.getElementById('confirmModal');
+          modal.close();
+          runTerraformApply();
+        });
+      }
+    }
 
-    document
-      .querySelector('button[value="TankaApprove"]')
-      .addEventListener("click", (e) => {
-        e.preventDefault();
-        const modal = document.getElementById('confirmModal');
-        modal.showModal();
-      });
+    if (type === "tanka") {
+      const tankaPlanButton = document.querySelector('button[value="TankaPlan"]');
+      if (tankaPlanButton) {
+        tankaPlanButton.addEventListener("click", (e) => {
+          e.preventDefault();
+          runTankaPlan();
+        });
+      }
 
-    document
-      .getElementById('confirmApply')
-      .addEventListener("click", () => {
-        const modal = document.getElementById('confirmModal');
-        modal.close();
-        runTerraformApply();
-      });
+      const tankaApproveButton = document.querySelector('button[value="TankaApprove"]');
+      if (tankaApproveButton) {
+        tankaApproveButton.addEventListener("click", (e) => {
+          e.preventDefault();
+          const modal = document.getElementById('confirmModal');
+          modal.showModal();
+        });
+      }
 
-    document
-      .getElementById('confirmTankaApply')
-      .addEventListener("click", () => {
-        const modal = document.getElementById('confirmModal');
-        modal.close();
-        runTankaApply();
-      });
+      const confirmTankaApplyButton = document.getElementById('confirmTankaApply');
+      if (confirmTankaApplyButton) {
+        confirmTankaApplyButton.addEventListener("click", () => {
+          const modal = document.getElementById('confirmModal');
+          modal.close();
+          runTankaApply();
+        });
+      }
+    }
 
-    document
-      .querySelector('button[value="Reject"]')
-      .addEventListener("click", (e) => {
+    const rejectButton = document.querySelector('button[value="Reject"]');
+    if (rejectButton) {
+      rejectButton.addEventListener("click", (e) => {
         e.preventDefault();
         const modal = document.getElementById('rejectModal');
         modal.showModal();
       });
+    }
 
-    document
-      .getElementById('confirmReject')
-      .addEventListener("click", () => {
+    const confirmRejectButton = document.getElementById('confirmReject');
+    if (confirmRejectButton) {
+      confirmRejectButton.addEventListener("click", () => {
         const modal = document.getElementById('rejectModal');
         modal.close();
       });
+    }
   };
   document.head.appendChild(script);
 </script>
@@ -549,19 +566,25 @@ const comments = await Db.getRepository(Comment).find({
 </script>
 
 <script>
-  document.getElementById('lock-button').addEventListener('click', function() {
-    const select = document.getElementById('environment-select') as HTMLSelectElement;
-    const icon = document.getElementById('lock-icon');
-    select.disabled = !select.disabled;
-    
-    if (select.disabled) {
-      icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/>';
-      icon.classList.add('text-base-content/50');
-      icon.classList.remove('text-primary');
-    } else {
-      icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>';
-      icon.classList.remove('text-base-content/50');
-      icon.classList.add('text-primary');
-    }
-  });
+  const lockButton = document.getElementById('lock-button');
+  if (lockButton) {
+    lockButton.addEventListener('click', function() {
+      const select = document.getElementById('environment-select') as HTMLSelectElement;
+      const icon = document.getElementById('lock-icon');
+      const form = document.getElementById('proposal-actions-form');
+      select.disabled = !select.disabled;
+      
+      if (select.disabled) {
+        icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/>';
+        icon.classList.add('text-base-content/50');
+        icon.classList.remove('text-primary');
+        form.style.display = 'flex';
+      } else {
+        icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>';
+        icon.classList.remove('text-base-content/50');
+        icon.classList.add('text-primary');
+        form.style.display = 'none';
+      }
+    });
+  }
 </script>
