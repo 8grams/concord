@@ -38,6 +38,9 @@ if (Astro.request.method === "POST") {
     case "Approve":
       // run terraform apply -auto-approve
       break;
+    case "TankaApprove":
+      // run tanka apply
+      break;
     case "Reject":
       proposal.status = "Rejected";
       proposal.rejector = Astro.locals.user.id as any;
@@ -45,6 +48,9 @@ if (Astro.request.method === "POST") {
       break;
     case "Plan":
       // run terraform plan
+      break;
+    case "TankaPlan":
+      // run tanka plan
       break;
     case "Comment":
       await Db.getRepository(Comment).insert({
@@ -114,13 +120,13 @@ const comments = await Db.getRepository(Comment).find({
         <form class="flex gap-4" method="post" id="proposal-actions-form">
           {
             (Astro.locals.user.role === "maintainer" && proposal.lastPlanOutput !== null) && (
-              <button class="btn btn-primary" name="action" value="Approve">Approve</button>
+              <button class="btn btn-primary" name="action" value={ workspace.type === "terraform" ? "Approve" : "TankaApprove" }>Approve</button>
               <button class="btn btn-error" name="action" value="Reject">Reject</button>
             )
           }
           {
             Astro.locals.user.role !== "viewer" && (  
-              <button class="btn btn-accent" name="action" value="Plan">
+              <button class="btn btn-accent" name="action" value={ workspace.type === "terraform" ? "Plan" : "TankaPlan" }>
                 Run Plan
               </button>
             )
@@ -149,7 +155,7 @@ const comments = await Db.getRepository(Comment).find({
         <div class="modal-action">
           <form method="dialog">
             <button class="btn">Cancel</button>
-            <button class="btn btn-primary" id="confirmApply">Apply</button>
+            <button class="btn btn-primary" id={ workspace.type === "terraform" ? "confirmApply" : "confirmTankaApply" }>Apply</button>
           </form>
         </div>
       </div>
@@ -318,6 +324,38 @@ const comments = await Db.getRepository(Comment).find({
       }
     }
 
+    async function runTankaPlan() {
+      terminal.clear();
+      terminal.write("\x1b[1;32m$ tanka plan\x1b[0m\r\n");
+
+      const response = await fetch("/api/tanka-plan", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          workspaceId,
+          mainDirectory,
+          proposalId,
+          userId,
+        }),
+      });
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) {
+          terminal.write("\r\n\x1b[1;32mPlan completed.\x1b[0m\r\n");
+          break;
+        }
+        const text = decoder.decode(value);
+        // Ensure proper line breaks and left alignment
+        terminal.write(text.replace(/\n/g, "\r\n"));
+      }
+    }
+
     // Function to run terraform apply
     async function runTerraformApply() {
       terminal.clear();
@@ -356,6 +394,43 @@ const comments = await Db.getRepository(Comment).find({
       }
     }
 
+    async function runTankaApply() {
+      terminal.clear();
+      terminal.write(
+        "\x1b[1;32m$ tanka apply\x1b[0m\r\n",
+      );
+
+      let allOutput = "";
+
+      const response = await fetch("/api/tanka-apply", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          workspaceId,
+          mainDirectory,
+          proposalId,
+          userId,
+        }),
+      });
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) {
+          terminal.write("\r\n\x1b[1;32mApply completed.\x1b[0m\r\n");
+          break;
+        }
+        const text = decoder.decode(value);
+        allOutput += text;
+        // Ensure proper line breaks and left alignment
+        terminal.write(text.replace(/\n/g, "\r\n"));
+      }
+    }
+
     // Add event listeners to the buttons
     document
       .querySelector('button[value="Plan"]')
@@ -365,7 +440,22 @@ const comments = await Db.getRepository(Comment).find({
       });
 
     document
+      .querySelector('button[value="TankaPlan"]')
+      .addEventListener("click", (e) => {
+        e.preventDefault();
+        runTankaPlan();
+      });
+
+    document
       .querySelector('button[value="Approve"]')
+      .addEventListener("click", (e) => {
+        e.preventDefault();
+        const modal = document.getElementById('confirmModal');
+        modal.showModal();
+      });
+
+    document
+      .querySelector('button[value="TankaApprove"]')
       .addEventListener("click", (e) => {
         e.preventDefault();
         const modal = document.getElementById('confirmModal');
@@ -378,6 +468,14 @@ const comments = await Db.getRepository(Comment).find({
         const modal = document.getElementById('confirmModal');
         modal.close();
         runTerraformApply();
+      });
+
+    document
+      .getElementById('confirmTankaApply')
+      .addEventListener("click", () => {
+        const modal = document.getElementById('confirmModal');
+        modal.close();
+        runTankaApply();
       });
 
     document

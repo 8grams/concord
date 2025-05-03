@@ -1,11 +1,11 @@
 ---
-import { rm, write } from "node:fs";
+import { rm } from "node:fs";
 import { exec } from "node:child_process";
 import { tmpdir } from "os";
 import { join } from "path";
 import { writeFileSync, chmodSync, unlinkSync, mkdirSync } from "fs";
-import { Db, Workspace } from "../db";
-import { encrypt, decrypt } from "../utils/crypto";
+import { Db, Workspace } from "../../db";
+import { encrypt, decrypt } from "../../utils/crypto";
 
 if (Astro.request.method === "POST") {
   const repository = Db.getRepository(Workspace);
@@ -22,7 +22,8 @@ if (Astro.request.method === "POST") {
   }));
 
   const privateKey = (data.get("privateKey") as string).replace(/\r\n/g, "\n");
-
+  const kubeconfig = (data.get("kubeconfig") as string).replace(/\r\n/g, "\n");
+  
   if (id) {
     await repository.update(
       { id: parseInt(id as string) },
@@ -47,12 +48,13 @@ if (Astro.request.method === "POST") {
     id = (
       await repository.insert({
         name: data.get("name") as string,
-        type: "terraform",
+        type: "tanka",
         url,
         mainDirectory: data.get("mainDirectory") as string,
         mainBranch: data.get("mainBranch") as string,
         outputDirectory,
         privateKey: encrypt(privateKey),
+        kubeconfig: encrypt(kubeconfig),
         status: "Cloning",
         envVars: envVariables,
       })
@@ -139,10 +141,10 @@ const workspace: Workspace | null = id
         />
       </label>
       <label class="floating-label">
-        <span>Terraform URL</span>
+        <span>Tanka URL</span>
         <input
           type="text"
-          placeholder="Terraform URL (e.g git@github.com:example/my-terraform.git)"
+          placeholder="Tanka URL (e.g git@github.com:example/my-tanka.git)"
           class="input input-md w-full"
           name="url"
           value={workspace?.url}
@@ -185,6 +187,15 @@ const workspace: Workspace | null = id
           class="textarea textarea-md w-full"
           name="privateKey"
           set:text={decrypt(workspace?.privateKey)}
+        />
+      </label>
+      <label class="floating-label">
+        <span>Kubeconfig</span>
+        <textarea
+          placeholder="Kubeconfig"
+          class="textarea textarea-md w-full"
+          name="kubeconfig"
+          set:text={decrypt(workspace?.kubeconfig)}
         />
       </label>
       <div

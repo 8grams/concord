@@ -16,6 +16,9 @@ export class Workspace extends BaseEntity {
   id: number;
 
   @Column("text", { nullable: true })
+  type: "terraform" | "tanka";
+
+  @Column("text", { nullable: true })
   name: string;
 
   @Column("text", { nullable: true })
@@ -35,6 +38,9 @@ export class Workspace extends BaseEntity {
 
   @Column("text", { nullable: true })
   privateKey: string;
+
+  @Column("text", { nullable: true })
+  kubeconfig: string;
 
   @Column("text", { nullable: true })
   status: string;
@@ -83,6 +89,9 @@ export class Proposal extends BaseEntity {
 
   @Column("text", { nullable: true })
   lastPlanOutput: string;
+
+  @Column("text", { nullable: true })
+  planEnvironment: string;
 
   @Column("text")
   branch: string;
