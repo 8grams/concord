@@ -1,3 +1,7 @@
+<p align="center">
+    <img alt="Concord" src="https://raw.githubusercontent.com/8grams/concord/refs/heads/develop/public/logo.png" height="200">
+</p>
+
 # Concord
 
 **Concord** is a collaborative platform that helps **DevOps Engineers** manage and provision cloud infrastructure using **Terraform** and **Grafana Tanka**, with Git-driven workflows and a smooth UI/UX for multi-user operations.
