@@ -10,7 +10,9 @@ RUN apt-get update && \
     ca-certificates \
     libc6 \
     build-essential \
-    python3
+    python3 \
+    apt-transport-https \
+    curl
 
 RUN wget -O- https://apt.releases.hashicorp.com/gpg | \
     gpg --dearmor | \
@@ -20,10 +22,27 @@ RUN echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] \
     https://apt.releases.hashicorp.com $(lsb_release -cs) main" | \
     tee /etc/apt/sources.list.d/hashicorp.list
 
+RUN curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.33/deb/Release.key | \
+    gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg && \
+    chmod 644 /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+
+RUN echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.33/deb/ /' | \
+    tee /etc/apt/sources.list.d/kubernetes.list
+
+RUN echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.33/deb/ /' | \
+    tee /etc/apt/sources.list.d/kubernetes.list && \
+    chmod 644 /etc/apt/sources.list.d/kubernetes.list
+
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-    terraform \
+    terraform kubectl \
     && rm -rf /var/lib/apt/lists/*
+
+RUN curl -Lo /usr/local/bin/tk https://github.com/grafana/tanka/releases/latest/download/tk-linux-amd64 && \
+    chmod a+x /usr/local/bin/tk
+
+RUN curl -Lo /usr/local/bin/jb https://github.com/jsonnet-bundler/jsonnet-bundler/releases/latest/download/jb-linux-amd64 && \
+    chmod a+x /usr/local/bin/jb
 
 RUN update-ca-certificates
 RUN npm install --global --no-update-notifier --no-fund pnpm

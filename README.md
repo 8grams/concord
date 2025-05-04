@@ -1,6 +1,6 @@
 # Concord
 
-**Concord** is a collaborative platform that helps **DevOps Engineers** manage and provision cloud infrastructure using **Terraform**, with Git-driven workflows and a smooth UI/UX for multi-user operations.
+**Concord** is a collaborative platform that helps **DevOps Engineers** manage and provision cloud infrastructure using **Terraform** and **Grafana Tanka**, with Git-driven workflows and a smooth UI/UX for multi-user operations.
 
 > Designed for visibility, collaboration, and streamlined infrastructure management.
 
@@ -9,8 +9,11 @@
 - 🔐 **Authentication**: Secure login support.
 - 🏗️ **Multiple Workspaces**: Organize projects across different environments.
 - 🌱 **Provisioning Proposals**: Propose infrastructure changes based on Git commits.
-- 🧠 **Git Commit History**: Visualize Git history using Git Graph (powered by MermaidJS).
+- 🧠 **Git Commit History**: Visualize Git history using Git Graph (powered by GitGraph).
 - 💬 **Collaborative Discussions**: Discuss proposals directly within the app.
+- 🛠️ **Infrastructure as Code Support**: 
+  - Terraform variables management and review via UI
+  - Grafana Tanka configuration management and deployment
 - 🛠️ **Terraform Variables Update**: Modify and review Terraform variables via UI.
 
 ## 🔧 Tech Stack
@@ -28,7 +31,8 @@
 
 - Node.js ≥ 18
 - Git
-- Terraform (optional, for full provisioning workflows)
+- Terraform (optional, for Terraform provisioning workflows)
+- Grafana Tanka (optional, for Tanka provisioning workflows)
 - [pnpm](https://pnpm.io/) (Package manager)
 
 ### Installation
@@ -40,7 +44,14 @@ pnpm install
 pnpm dev
 ```
 
-> For production setup, please refer to the `docs/DEPLOY.md` (coming soon).
+## Run on Production
+
+In Production, run it via docker. Create `.env` file from `.env.example`, adjust this file with appropriate values and run:
+
+```
+docker run -v ./data:/app/data --env-file=./.env -p 4321:4321 ghcr.io/8grams/concord:latest
+```
+
 
 ## 🤝 Contributing
 
