@@ -70,7 +70,7 @@ export class User extends BaseEntity {
   picture: string;
 
   @Column("text", { nullable: true })
-  role: "maintainer" | "editor" | "viewer";
+  role: "admin" | "maintainer" | "editor" | "viewer";
 }
 
 @Entity()
@@ -155,7 +155,7 @@ export const admin = {
   id: 10001,
   email: "admin@admin.com",
   name: "Admin",
-  role: "maintainer",
+  role: "admin",
   picture:
     "https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp",
 };

@@ -3,7 +3,7 @@ type User = {
   email: string; // 0 -> admin
   name: string;
   picture: string;
-  role: "maintainer" | "editor" | "viewer";
+  role: "admin" | "maintainer" | "editor" | "viewer";
 };
 
 declare namespace App {
