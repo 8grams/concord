@@ -153,7 +153,7 @@ export const Db = new DataSource({
 
 export const admin = {
   id: 10001,
-  email: "admin@admin",
+  email: "admin@admin.com",
   name: "Admin",
   role: "maintainer",
   picture:

@@ -26,6 +26,8 @@ const branch = `concord-proposal-${hash.slice(0, 6)}`;
 await new Promise((resolve, reject) => {
   exec(`
   GIT_SSH_COMMAND="ssh -i ${tempKeyPath} -o IdentitiesOnly=yes -o StrictHostKeyChecking=no" bash -c '
+    git config --global user.email "${Astro.locals.user.email}"
+    git config --global user.name "${Astro.locals.user.name}"  
     git checkout ${hash}
   
     if git show-ref --verify --quiet refs/heads/${branch}; then
