@@ -16,7 +16,7 @@ const workspace = await Db.getRepository(Workspace).findOne({
 
 const currentBranch = workspace?.currentBranch ?? workspace?.mainBranch as string;
 
-const tempKeyPath = join(tmpdir(), `tempkey-${Date.now()}`);
+const tempKeyPath = `data/tempkey-${Date.now()}`;
 writeFileSync(tempKeyPath, decrypt(workspace?.privateKey));
 chmodSync(tempKeyPath, 0o600);
 const repository = Db.getRepository(Proposal);

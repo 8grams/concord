@@ -62,7 +62,7 @@ if (Astro.request.method === "POST") {
   mkdirSync(`data/repositories`, { recursive: true });
 
   rm(`data/repositories/${id}`, { recursive: true }, () => {
-    const tempKeyPath = join(tmpdir(), `tempkey-${Date.now()}`);
+    const tempKeyPath = `data/tempkey-${Date.now()}`;
     writeFileSync(tempKeyPath, privateKey);
     chmodSync(tempKeyPath, 0o600);
 
@@ -86,6 +86,8 @@ if (Astro.request.method === "POST") {
           mkdirSync(outputDir, { recursive: true });
           // write gitignore
           writeFileSync(join(outputDir, ".gitignore"), "*");
+        } else {
+          console.log("Error cloning repository:", err);
         }
       },
     );
