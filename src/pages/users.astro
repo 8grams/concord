@@ -28,7 +28,7 @@ const users = await Db.getRepository(User).find();
             <td>{user.email}</td>
             <td>{user.role}</td>
             {
-              (Astro.locals.user.role === 'admin' || (user.role !== 'admin' && Astro.locals.user.email !== user.email)) && (
+              (Astro.locals.isAdmin || (user.role !== 'admin' && Astro.locals.user.email !== user.email)) && (
             <td class="w-1 whitespace-nowrap">
               <div class="inline-block" x-data>
                 <button
