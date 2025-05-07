@@ -92,10 +92,10 @@ if (Astro.request.method === "POST") {
       // update git
       execSync(`
         cd data/repositories/${workspaceId} &&
-        git add . && \
-        git commit -m "Update terraform.tfvars" && \
         git config --global user.email "${Astro.locals.user.email}" && \
         git config --global user.name "${Astro.locals.user.name}" && \
+        git add . && \
+        git commit -m "Update terraform.tfvars" && \
         GIT_SSH_COMMAND="ssh -i ${tempKeyPath} -o IdentitiesOnly=yes -o StrictHostKeyChecking=no" git push origin ${workspace?.mainBranch}
       `);
 
