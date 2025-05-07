@@ -12,7 +12,8 @@ RUN apt-get update && \
     build-essential \
     python3 \
     apt-transport-https \
-    curl
+    curl \
+    openssh-client
 
 RUN wget -O- https://apt.releases.hashicorp.com/gpg | \
     gpg --dearmor | \
