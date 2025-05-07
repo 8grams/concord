@@ -19,6 +19,7 @@ const currentBranch = workspace?.currentBranch ?? workspace?.mainBranch as strin
 const tempKeyPath = join(tmpdir(), `tempkey-${Date.now()}`);
 writeFileSync(tempKeyPath, decrypt(workspace?.privateKey));
 chmodSync(tempKeyPath, 0o600);
+
 const repository = Db.getRepository(Proposal);
 const branch = `concord-proposal-${hash.slice(0, 6)}`;
 
