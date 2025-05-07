@@ -141,7 +141,7 @@ try {
                 <td class="px-2">{log.subject}</td>
                 <td class="px-2">
                   {!log.status && (
-                    Astro.locals.user.role === "editor" || Astro.locals.user.role === "maintainer"
+                    Astro.locals.isAdmin || Astro.locals.user.role === "editor" || Astro.locals.user.role === "maintainer"
                   ) && (
                     <form action="/new-proposal" method="post">
                       <input type="hidden" name="hash" value={log.hash} />

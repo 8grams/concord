@@ -171,7 +171,7 @@ const comments = await Db.getRepository(Comment).find({
       proposal.status === "On Review" ? (
         <form class="flex gap-4" method="post" id="proposal-actions-form" x-data="{ isLocked: true }" x-show="isLocked">
           {
-            (Astro.locals.user.role === "maintainer" && proposal.lastPlanOutput !== null) && (
+            ((Astro.locals.isAdmin || Astro.locals.user.role === "maintainer") && proposal.lastPlanOutput !== null) && (
               <button class="btn btn-primary" name="action" value={ workspace.type === "terraform" ? "Approve" : "TankaApprove" }>Approve</button>
               <button class="btn btn-error" name="action" value="Reject">Reject</button>
             )
