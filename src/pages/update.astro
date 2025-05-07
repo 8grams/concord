@@ -94,7 +94,7 @@ if (Astro.request.method === "POST") {
         cd data/repositories/${workspaceId} &&
         git add . && \
         git commit -m "Update terraform.tfvars" && \
-        git push origin ${workspace?.mainBranch}
+        GIT_SSH_COMMAND="ssh -i ${tempKeyPath} -o IdentitiesOnly=yes -o StrictHostKeyChecking=no" git push origin ${workspace?.mainBranch}
       `);
 
       return Astro.redirect("/update");
