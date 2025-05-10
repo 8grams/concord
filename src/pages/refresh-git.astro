@@ -18,17 +18,18 @@ const workspace = await Db.getRepository(Workspace).findOneBy({
 
 const referer = Astro.request.headers.get("referer");
 const refererUrl = new URL(referer);
-const pathname = refererUrl.pathname;
 
 const tempKeyPath = join(tmpdir(), `tempkey-${Date.now()}`);
 writeFileSync(tempKeyPath, decrypt(workspace?.privateKey));
 chmodSync(tempKeyPath, 0o600);
 
+let branch = Astro.cookies.get("planBranch")?.value ?? workspace.currentBranch;
 if (refererUrl.pathname === "/proposal") {
-  execSync(`cd data/repositories/${workspaceId} && GIT_SSH_COMMAND="ssh -i ${tempKeyPath} -o IdentitiesOnly=yes -o StrictHostKeyChecking=no" git pull origin ${Astro.cookies.get("planBranch")?.value ?? workspace.currentBranch}`); 
+  branch = Astro.cookies.get("planBranch")?.value ?? workspace.currentBranch; 
 } else {
-  execSync(`cd data/repositories/${workspaceId} && GIT_SSH_COMMAND="ssh -i ${tempKeyPath} -o IdentitiesOnly=yes -o StrictHostKeyChecking=no" git pull origin ${workspace.currentBranch}`);
+  branch = workspace.currentBranch;
 }
+execSync(`cd data/repositories/${workspaceId} && git config --global pull.rebase false && GIT_SSH_COMMAND="ssh -i ${tempKeyPath} -o IdentitiesOnly=yes -o StrictHostKeyChecking=no" git pull origin ${branch}`);
 
 unlinkSync(tempKeyPath);
 // redirect back to previous page

@@ -36,6 +36,7 @@ chmodSync(tempKeyPath, 0o600);
 // sync git
 execSync(`
   cd data/repositories/${workspaceId} && \
+  git config --global pull.rebase false && \
   GIT_SSH_COMMAND="ssh -i ${tempKeyPath} -o IdentitiesOnly=yes -o StrictHostKeyChecking=no" git pull origin ${workspace.mainBranch}
 `);
 
@@ -85,6 +86,7 @@ if (Astro.request.method === "POST") {
       // sync git
       execSync(`
         cd data/repositories/${workspaceId} && \
+        git config --global pull.rebase false && \
         GIT_SSH_COMMAND="ssh -i ${tempKeyPath} -o IdentitiesOnly=yes -o StrictHostKeyChecking=no" git pull origin ${workspace?.mainBranch}
       `);
       fs.writeFileSync(tfVarsFile, config);

@@ -192,11 +192,19 @@ const comments = await Db.getRepository(Comment).find({
             <a href={getBranchURL(workspace.url, proposal.branch)} target="_blank" class="btn btn-sm btn-primary">Create PR</a>
           </div>
         </div>
+      )  : proposal.status === "Rejected" ? (
+        <div class="alert alert-error">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          <span>Changes have been rejected. Would you like to delete the branch?</span>
+          <div>
+            <a href={getBranchURL(workspace.url, proposal.branch)} target="_blank" class="btn btn-sm btn-primary">Delete Branch</a>
+          </div>
+        </div>
       ) : null
     }
 
     <div
-      class="rounded overflow-hidden max-h-[600px] bg-black p-4"
+      class="rounded overflow-auto bg-black p-4 h-[calc(100vh-600px)] min-h-[600px]"
       x-init="window.createTerminal($el)"
     >
     </div>
