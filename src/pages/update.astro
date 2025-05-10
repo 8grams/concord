@@ -37,7 +37,10 @@ chmodSync(tempKeyPath, 0o600);
 execSync(`
   cd data/repositories/${workspaceId} && \
   git config --global pull.rebase false && \
-  GIT_SSH_COMMAND="ssh -i ${tempKeyPath} -o IdentitiesOnly=yes -o StrictHostKeyChecking=no" git pull origin ${workspace.mainBranch}
+  git config --global user.email "${Astro.locals.user.email}" && \
+  git config --global user.name "${Astro.locals.user.name}" && \
+  GIT_SSH_COMMAND="ssh -i ${tempKeyPath} -o IdentitiesOnly=yes -o StrictHostKeyChecking=no" \
+  git pull origin ${workspace.mainBranch}
 `);
 
 if (Astro.request.method === "POST") {
@@ -87,7 +90,10 @@ if (Astro.request.method === "POST") {
       execSync(`
         cd data/repositories/${workspaceId} && \
         git config --global pull.rebase false && \
-        GIT_SSH_COMMAND="ssh -i ${tempKeyPath} -o IdentitiesOnly=yes -o StrictHostKeyChecking=no" git pull origin ${workspace?.mainBranch}
+        git config --global user.email "${Astro.locals.user.email}" && \
+        git config --global user.name "${Astro.locals.user.name}" && \
+        GIT_SSH_COMMAND="ssh -i ${tempKeyPath} -o IdentitiesOnly=yes -o StrictHostKeyChecking=no" \
+        git pull origin ${workspace?.mainBranch}
       `);
       fs.writeFileSync(tfVarsFile, config);
 

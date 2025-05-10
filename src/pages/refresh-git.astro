@@ -29,7 +29,14 @@ if (refererUrl.pathname === "/proposal") {
 } else {
   branch = workspace.currentBranch;
 }
-execSync(`cd data/repositories/${workspaceId} && git config --global pull.rebase false && GIT_SSH_COMMAND="ssh -i ${tempKeyPath} -o IdentitiesOnly=yes -o StrictHostKeyChecking=no" git pull origin ${branch}`);
+execSync(`
+  cd data/repositories/${workspaceId} && \
+  git config --global user.email "${Astro.locals.user.email}" && \
+  git config --global user.name "${Astro.locals.user.name}" && \
+  git config --global pull.rebase false && \
+  GIT_SSH_COMMAND="ssh -i ${tempKeyPath} -o IdentitiesOnly=yes -o StrictHostKeyChecking=no" \
+  git pull origin ${branch}
+`);
 
 unlinkSync(tempKeyPath);
 // redirect back to previous page
