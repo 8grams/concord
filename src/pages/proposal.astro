@@ -383,6 +383,9 @@ const comments = await Db.getRepository(Comment).find({
         // Ensure proper line breaks and left alignment
         terminal.write(text.replace(/\n/g, "\r\n"));
       }
+
+      // refresh page after plan completion
+      window.location.reload();
     }
 
     async function runTankaPlan() {
@@ -418,6 +421,9 @@ const comments = await Db.getRepository(Comment).find({
         const text = decoder.decode(value);
         terminal.write(text.replace(/\n/g, "\r\n"));
       }
+
+      // refresh page after completion
+      window.location.reload();
     }
 
     // Function to run terraform apply
@@ -456,6 +462,9 @@ const comments = await Db.getRepository(Comment).find({
         // Ensure proper line breaks and left alignment
         terminal.write(text.replace(/\n/g, "\r\n"));
       }
+
+      // refresh page after completion
+      window.location.reload();
     }
 
     async function runTankaApply() {
@@ -491,6 +500,9 @@ const comments = await Db.getRepository(Comment).find({
         const text = decoder.decode(value);
         terminal.write(text.replace(/\n/g, "\r\n"));
       }
+
+      // refresh page after completion
+      window.location.reload();
     }
 
     // Add event listeners to the buttons
