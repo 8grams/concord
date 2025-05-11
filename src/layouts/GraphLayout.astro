@@ -118,6 +118,16 @@ try {
         Outputs
       </a>
     )}
+
+    {workspace?.type === "tanka" && (
+      <a
+        class="tab"
+        href="/tanka/environments"
+      class:list={[current === "environments" && "tab-active"]}
+    >
+        Environments
+      </a>
+    )}
   </div>
   <div class="p-4">
     <slot />

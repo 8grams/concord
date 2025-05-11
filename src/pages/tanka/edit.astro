@@ -1,0 +1,120 @@
+---
+import { Db, Workspace } from "../../db";
+import { readFileSync } from 'fs';
+import GraphLayout from "../../layouts/GraphLayout.astro";
+
+const workspaceId = parseInt(Astro.cookies.get("workspace").value);
+const workspace = await Db.getRepository(Workspace).findOne({
+  where: { id: workspaceId },
+});
+
+const environment = Astro.url.searchParams.get("environment");
+if (!environment) {
+  return Astro.redirect("/tanka/environments");
+}
+
+const filePath = `data/repositories/${workspace.id}/${workspace.mainDirectory}/environments/${environment}/main.jsonnet`;
+let content = '';
+try {
+  content = readFileSync(filePath, 'utf-8');
+} catch (e) {
+  console.error(`Error reading main.jsonnet for ${environment}:`, e);
+}
+---
+
+<GraphLayout current="environments">
+  <div class="p-4 flex flex-col gap-4">
+    <div class="flex items-center justify-between">
+      <h1 class="font-bold text-lg">Editing {environment}/main.jsonnet</h1>
+      <div class="flex gap-2">
+        <button class="btn btn-primary" id="saveButton">
+          <span class="normal-content">Save</span>
+          <span class="loading-content hidden">
+            <span class="loading loading-spinner loading-sm"></span>
+            Saving...
+          </span>
+        </button>
+        <a href="/tanka/environments" class="btn">Cancel</a>
+      </div>
+    </div>
+    <div id="editor" class="h-[calc(100vh-200px)] border border-base-300 rounded-lg"></div>
+  </div>
+</GraphLayout>
+
+<script define:vars={{ content, environment, workspaceId, mainDirectory: workspace.mainDirectory }}>
+  // Load Monaco Editor
+  const script = document.createElement("script");
+  script.src = "https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js";
+  script.onload = () => {
+    require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs' }});
+    require(['vs/editor/editor.main'], function() {
+      // Create editor instance
+      const editor = monaco.editor.create(document.getElementById('editor'), {
+        value: content,
+        language: 'json',
+        theme: 'vs-dark',
+        automaticLayout: true,
+        minimap: {
+          enabled: true
+        },
+        fontSize: 14,
+        tabSize: 2,
+        wordWrap: 'on'
+      });
+
+      // Add save functionality
+      const saveButton = document.getElementById('saveButton');
+      const normalContent = saveButton.querySelector('.normal-content');
+      const loadingContent = saveButton.querySelector('.loading-content');
+
+      function setLoading(isLoading) {
+        saveButton.disabled = isLoading;
+        if (isLoading) {
+          normalContent.classList.add('hidden');
+          loadingContent.classList.remove('hidden');
+        } else {
+          normalContent.classList.remove('hidden');
+          loadingContent.classList.add('hidden');
+        }
+      }
+
+      saveButton.addEventListener('click', async () => {
+        const newContent = editor.getValue();
+        try {
+          setLoading(true);
+          const response = await fetch('/api/tanka/edit', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              workspaceId,
+              mainDirectory: mainDirectory,
+              environment,
+              content: newContent
+            }),
+          });
+
+          if (response.ok) {
+            window.location.reload();
+          } else {
+            alert('Failed to save changes');
+            setLoading(false);
+          }
+        } catch (error) {
+          console.error('Error saving:', error);
+          alert('Failed to save changes');
+          setLoading(false);
+        }
+      });
+
+      // Add keyboard shortcut for save (Ctrl/Cmd + S)
+      editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => {
+        if (!saveButton.disabled) {
+          saveButton.click();
+        }
+      });
+    });
+  };
+  document.head.appendChild(script);
+</script>
