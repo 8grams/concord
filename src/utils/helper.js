@@ -1,6 +1,19 @@
+/**
+ * Database and workspace models
+ */
 import { Db, Workspace } from "../db";
+/**
+ * Decryption utility
+ */
 import { decrypt } from "./crypto";
 
+/**
+ * Generates a URL to a specific commit in a Git repository
+ * @param {string} gitURL - SSH Git URL in format git@host:path.git
+ * @param {string} hash - Git commit hash
+ * @returns {string} URL to the commit on the hosting platform
+ * @throws {Error} If the Git URL format is invalid
+ */
 export function getCommitURL(gitURL, hash) {
   const regex = /^git@([^:]+):(.+)\.git$/;
   const match = gitURL.match(regex);
@@ -13,6 +26,13 @@ export function getCommitURL(gitURL, hash) {
   return `https://${host}/${path}/-/commit/${hash}`;
 }
 
+/**
+ * Generates a URL to a specific branch in a Git repository
+ * @param {string} gitURL - SSH Git URL in format git@host:path.git
+ * @param {string} branch - Git branch name
+ * @returns {string} URL to the branch on the hosting platform
+ * @throws {Error} If the Git URL format is invalid
+ */
 export function getBranchURL(gitURL, branch) {
   const regex = /^git@([^:]+):(.+)\.git$/;
   const match = gitURL.match(regex);
@@ -25,6 +45,11 @@ export function getBranchURL(gitURL, branch) {
   return `https://${host}/${path}/-/tree/${branch}`;
 }
 
+/**
+ * Generates environment variable export commands for a workspace
+ * @param {string|number} workspaceId - ID of the workspace
+ * @returns {Promise<string>} Shell commands to export environment variables, concatenated with &&
+ */
 export async function generateEnvVars(workspaceId) {
   const workspace = await Db.getRepository(Workspace).findOne({ where: { id: workspaceId } });
   const envVars = workspace?.envVars;
@@ -40,6 +65,11 @@ export async function generateEnvVars(workspaceId) {
   return exportCommands;
 }
 
+/**
+ * Generates Terraform secret export commands for a workspace
+ * @param {string|number} workspaceId - ID of the workspace
+ * @returns {Promise<string>} Shell commands to export secrets as TF_VAR environment variables, concatenated with &&
+ */
 export async function generateSecrets(workspaceId) {
   const workspace = await Db.getRepository(Workspace).findOne({ where: { id: workspaceId } });
   const secrets = workspace?.secrets;
