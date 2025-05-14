@@ -20,6 +20,45 @@
   - Grafana Tanka configuration management and deployment
 - 🛠️ **Terraform Variables Update**: Modify and review Terraform variables via UI.
 
+## 📂 Project Structure Conventions
+
+Concord is designed to work with typical infrastructure-as-code repositories with the following structure conventions:
+
+### Terraform Projects
+
+```
+project-root/
+├── environments/
+│   ├── dev/
+│   │   ├── main.tf
+│   │   ├── variables.tf
+│   │   └── terraform.tfvars
+│   ├── staging/
+│   └── production/
+├── modules/
+│   ├── networking/
+│   ├── compute/
+│   └── database/
+└── README.md
+```
+
+### Grafana Tanka Projects
+
+```
+project-root/
+├── environments/
+│   ├── default/
+│   ├── dev/
+│   ├── staging/
+│   └── production/
+├── lib/
+│   ├── k.libsonnet
+│   └── utils.libsonnet
+└── vendor/
+```
+
+Concord automatically detects these structures and provides appropriate workflows for each project type, allowing seamless management of infrastructure configurations across environments.
+
 ## 🔧 Tech Stack
 
 | Layer      | Technology |
