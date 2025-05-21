@@ -7,11 +7,15 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { writeFileSync } from "node:fs";
 import { decrypt } from "../../utils/crypto";
+import { sendApplyFinishedEmail } from "../../utils/mailer";
 
 export const POST: APIRoute = async ({ request }) => {
-  const { workspaceId, mainDirectory, proposalId, environment, userId } = await request.json();
+  const { workspaceId, mainDirectory, proposalId, environment, userId } =
+    await request.json();
 
-  const workspace = await Db.getRepository(Workspace).findOne({ where: { id: workspaceId } });
+  const workspace = await Db.getRepository(Workspace).findOne({
+    where: { id: workspaceId },
+  });
   // write kubeconfig on tmp file
   const kubeconfig = decrypt(workspace.kubeconfig);
 
@@ -20,20 +24,19 @@ export const POST: APIRoute = async ({ request }) => {
   chmodSync(tempKubeconfigPath, 0o600);
 
   // Prepare environment variables as export commands
-  const exportCommands = await generateEnvVars(workspaceId);  
+  const exportCommands = await generateEnvVars(workspaceId);
   const exportSecrets = await generateSecrets(workspaceId);
 
   const stream = new ReadableStream({
     start(controller) {
-
       // Construct the full command
-      const fullCommand = exportCommands 
+      const fullCommand = exportCommands
         ? ` jb install && KUBECONFIG=${tempKubeconfigPath} ${exportCommands} ${exportSecrets} tk apply environments/${environment} --auto-approve=always`
         : ` jb install && KUBECONFIG=${tempKubeconfigPath} tk apply environments/${environment} --auto-approve=always`;
 
       // Run both commands in sequence using shell
       const tankaProcess = spawn("sh", ["-c", fullCommand], {
-        cwd: `data/repositories/${workspaceId}/${mainDirectory}`
+        cwd: `data/repositories/${workspaceId}/${mainDirectory}`,
       });
 
       let output = "";
@@ -55,14 +58,15 @@ export const POST: APIRoute = async ({ request }) => {
         await Db.getRepository(Proposal).update(proposalId, {
           lastPlanOutput: output,
           status: "Applied",
-          applyExecutor: userId
+          applyExecutor: userId,
         });
         controller.close();
         unlinkSync(tempKubeconfigPath);
 
         // send email to user
+        sendApplyFinishedEmail(proposalId);
       });
-    }
+    },
   });
 
   return new Response(stream, {
@@ -70,4 +74,4 @@ export const POST: APIRoute = async ({ request }) => {
       "Content-Type": "text/plain",
     },
   });
-}; 
+};

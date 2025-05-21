@@ -2,24 +2,25 @@ import { spawn } from "node:child_process";
 import type { APIRoute } from "astro";
 import { Db, Proposal } from "../../db";
 import { generateEnvVars, generateSecrets } from "../../utils/helper";
+import { sendApplyFinishedEmail } from "../../utils/mailer";
 
 export const POST: APIRoute = async ({ request }) => {
-  const { workspaceId, mainDirectory, proposalId, userId } = await request.json();
+  const { workspaceId, mainDirectory, proposalId, userId } =
+    await request.json();
   // Prepare environment variables as export commands
-  const exportCommands = await generateEnvVars(workspaceId);  
+  const exportCommands = await generateEnvVars(workspaceId);
   const exportSecrets = await generateSecrets(workspaceId);
 
   const stream = new ReadableStream({
     start(controller) {
-
       // Construct the full command
-      const fullCommand = exportCommands 
+      const fullCommand = exportCommands
         ? ` ${exportCommands} ${exportSecrets} terraform apply -auto-approve`
-        : 'terraform apply -auto-approve';
+        : "terraform apply -auto-approve";
 
       // Run both commands in sequence using shell
       const terraformProcess = spawn("sh", ["-c", fullCommand], {
-        cwd: `data/repositories/${workspaceId}/${mainDirectory}`
+        cwd: `data/repositories/${workspaceId}/${mainDirectory}`,
       });
 
       let output = "";
@@ -41,13 +42,14 @@ export const POST: APIRoute = async ({ request }) => {
         await Db.getRepository(Proposal).update(proposalId, {
           lastPlanOutput: output,
           status: "Applied",
-          applyExecutor: userId
+          applyExecutor: userId,
         });
         controller.close();
 
         // send email to user
+        sendApplyFinishedEmail(proposalId);
       });
-    }
+    },
   });
 
   return new Response(stream, {
@@ -55,4 +57,4 @@ export const POST: APIRoute = async ({ request }) => {
       "Content-Type": "text/plain",
     },
   });
-}; 
+};

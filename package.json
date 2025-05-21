@@ -6,7 +6,8 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "test": "vitest"
   },
   "dependencies": {
     "@astrojs/alpinejs": "^0.4.6",
@@ -22,12 +23,16 @@
     "hcl2-parser": "^1.0.3",
     "install": "^0.13.0",
     "nodemailer": "^7.0.3",
+    "nodemailer-express-handlebars": "^7.0.0",
     "npm": "^11.3.0",
     "peggy": "^4.2.0",
     "tailwindcss": "^4.1.4",
     "typeorm": "^0.3.22"
   },
   "devDependencies": {
-    "daisyui": "^5.0.19"
+    "@types/nodemailer": "^6.4.17",
+    "@types/nodemailer-express-handlebars": "^4.0.5",
+    "daisyui": "^5.0.19",
+    "vitest": "^3.1.4"
   }
 }
