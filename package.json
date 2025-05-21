@@ -6,8 +6,7 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro",
-    "test": "vitest"
+    "astro": "astro"
   },
   "dependencies": {
     "@astrojs/alpinejs": "^0.4.6",
@@ -32,7 +31,6 @@
   "devDependencies": {
     "@types/nodemailer": "^6.4.17",
     "@types/nodemailer-express-handlebars": "^4.0.5",
-    "daisyui": "^5.0.19",
-    "vitest": "^3.1.4"
+    "daisyui": "^5.0.19"
   }
 }

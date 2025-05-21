@@ -17,10 +17,10 @@ export async function sendEmail(to: string[] | string, data: Data) {
     hbs({
       viewEngine: {
         extname: ".hbs",
-        layoutsDir: __dirname + "/email/layouts",
-        partialsDir: __dirname + "/email/partials",
+        layoutsDir: "src/pages/emails/layouts",
+        partialsDir: "src/pages/emails/partials",
       },
-      viewPath: __dirname + "/email",
+      viewPath: "src/pages/emails",
       extName: ".hbs",
     }),
   );
