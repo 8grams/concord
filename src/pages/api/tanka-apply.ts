@@ -59,6 +59,8 @@ export const POST: APIRoute = async ({ request }) => {
         });
         controller.close();
         unlinkSync(tempKubeconfigPath);
+
+        // send email to user
       });
     }
   });

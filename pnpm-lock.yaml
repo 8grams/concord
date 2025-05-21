@@ -44,6 +44,9 @@ importers:
       install:
         specifier: ^0.13.0
         version: 0.13.0
+      nodemailer:
+        specifier: ^7.0.3
+        version: 7.0.3
       npm:
         specifier: ^11.3.0
         version: 11.3.0
@@ -1435,6 +1438,10 @@ packages:
 
   node-mock-http@1.0.0:
     resolution: {integrity: sha512-0uGYQ1WQL1M5kKvGRXWQ3uZCHtLTO8hln3oBjIusM75WoesZ909uQJs/Hb946i2SS+Gsrhkaa6iAO17jRIv6DQ==}
+
+  nodemailer@7.0.3:
+    resolution: {integrity: sha512-Ajq6Sz1x7cIK3pN6KesGTah+1gnwMnx5gKl3piQlQQE/PwyJ4Mbc8is2psWYxK3RJTVeqsDaCv8ZzXLCDHMTZw==}
+    engines: {node: '>=6.0.0'}
 
   normalize-path@3.0.0:
     resolution: {integrity: sha512-6eZs5Ls3WtCisHWp9S2GUy8dqkpGi4BVSz3GaqiE6ezub0512ESztXUwUB6C6IKbQkY2Pnb/mD4WYojCRwcwLA==}
@@ -3673,6 +3680,8 @@ snapshots:
       whatwg-url: 5.0.0
 
   node-mock-http@1.0.0: {}
+
+  nodemailer@7.0.3: {}
 
   normalize-path@3.0.0: {}
 

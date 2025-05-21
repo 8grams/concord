@@ -1,5 +1,6 @@
 ---
 import { Db, User } from "../db";
+import { sendEmail } from "../utils/mailer";
 
 if (Astro.request.method === "POST") {
   const repository = Db.getRepository(User);
@@ -22,6 +23,9 @@ if (Astro.request.method === "POST") {
       role,
     });
   }
+
+  // send email to user
+
   return Astro.redirect("/users");
 }
 

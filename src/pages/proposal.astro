@@ -1,10 +1,11 @@
 ---
 import { promisify } from "util";
-import { Db, Proposal as ProposalTable, Comment, Workspace } from "../db";
+import { Db, Proposal as ProposalTable, Comment, Workspace, User } from "../db";
 import HomeLayout from "../layouts/HomeLayout.astro";
 import { getBranchURL } from "../utils/helper";
 import { exec as execCPS } from "child_process";
 import { readdirSync, statSync } from 'fs';
+import { sendEmail } from "../utils/mailer";
 
 const workspaceId = parseInt(Astro.cookies.get("workspace").value);
 const workspace = await Db.getRepository(Workspace).findOne({
@@ -52,12 +53,24 @@ if (Astro.request.method === "POST") {
       proposal.status = "Rejected";
       proposal.rejector = Astro.locals.user.id as any;
       await proposal.save();
+
+      // send email to user
+      
       break;
     case "Plan":
       // run terraform plan
       break;
     case "TankaPlan":
       // run tanka plan
+      break;
+
+    case "ApplyRequest":
+      // update hasApplyRequest to true
+      proposal.hasApplyRequest = true;
+      await proposal.save();
+
+      // send email to maintainer
+
       break;
     case "Comment":
       await Db.getRepository(Comment).insert({
@@ -181,6 +194,19 @@ const comments = await Db.getRepository(Comment).find({
               <button class="btn btn-accent" name="action" value={ workspace.type === "terraform" ? "Plan" : "TankaPlan" }>
                 Run Plan
               </button>
+            )
+          }
+          {
+            Astro.locals.user.role === "viewer" && !proposal.hasApplyRequest && (
+              <button class="btn btn-primary" name="action" value="ApplyRequest">Apply Request</button>
+            )
+          }
+          {
+            Astro.locals.user.role === "viewer" && proposal.hasApplyRequest && (
+            <div class="alert alert-info">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              <span>Apply request has been sent to maintainers. Please wait for approval.</span>
+            </div>
             )
           }
         </form>

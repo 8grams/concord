@@ -44,6 +44,8 @@ export const POST: APIRoute = async ({ request }) => {
           applyExecutor: userId
         });
         controller.close();
+
+        // send email to user
       });
     }
   });

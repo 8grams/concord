@@ -99,6 +99,9 @@ export class Proposal extends BaseEntity {
   @Column("text", { nullable: true })
   status: "On Review" | "Applied" | "Rejected";
 
+  @Column("boolean", { default: false })
+  hasApplyRequest: boolean;
+
   @CreateDateColumn()
   createdAt: Date;
 

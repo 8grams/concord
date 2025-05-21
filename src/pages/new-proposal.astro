@@ -1,10 +1,11 @@
 ---
-import { Db, Proposal, Workspace } from "../db";
+import { Db, Proposal, User, Workspace } from "../db";
 import { tmpdir } from "os";
 import { exec } from "node:child_process";
 import { join } from "path";
 import { writeFileSync, chmodSync, unlinkSync } from "fs";
 import { decrypt } from "../utils/crypto";
+import { sendNewProposalEmail } from "../utils/mailer";
 
 const data = await Astro.request.formData();
 const hash = data.get("hash") as string;
@@ -71,6 +72,9 @@ await new Promise((resolve, reject) => {
     }
   );
 });
+
+// send email to maintainer
+
 
 return Astro.redirect(`/proposal?hash=${hash}`);
 ---
