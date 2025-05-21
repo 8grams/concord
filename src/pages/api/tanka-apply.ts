@@ -7,7 +7,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { writeFileSync } from "node:fs";
 import { decrypt } from "../../utils/crypto";
-import { sendApplyFinishedEmail } from "../../utils/mailer";
+import { sendProposalAppliedEmail } from "../../utils/mailer";
 
 export const POST: APIRoute = async ({ request }) => {
   const { workspaceId, mainDirectory, proposalId, environment, userId } =
@@ -63,8 +63,7 @@ export const POST: APIRoute = async ({ request }) => {
         controller.close();
         unlinkSync(tempKubeconfigPath);
 
-        // send email to user
-        sendApplyFinishedEmail(proposalId);
+        await sendProposalAppliedEmail(proposalId);
       });
     },
   });

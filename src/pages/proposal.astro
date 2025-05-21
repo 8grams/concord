@@ -5,7 +5,7 @@ import HomeLayout from "../layouts/HomeLayout.astro";
 import { getBranchURL } from "../utils/helper";
 import { exec as execCPS } from "child_process";
 import { readdirSync, statSync } from 'fs';
-import { sendEmail } from "../utils/mailer";
+import { sendApplyRequestEmail, sendProposalRejectedEmail } from "../utils/mailer";
 
 const workspaceId = parseInt(Astro.cookies.get("workspace").value);
 const workspace = await Db.getRepository(Workspace).findOne({
@@ -55,6 +55,7 @@ if (Astro.request.method === "POST") {
       await proposal.save();
 
       // send email to user
+      await sendProposalRejectedEmail(proposal.id);
       
       break;
     case "Plan":
@@ -70,6 +71,7 @@ if (Astro.request.method === "POST") {
       await proposal.save();
 
       // send email to maintainer
+      await sendApplyRequestEmail(proposal.id);
 
       break;
     case "Comment":

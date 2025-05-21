@@ -2,7 +2,7 @@ import { spawn } from "node:child_process";
 import type { APIRoute } from "astro";
 import { Db, Proposal } from "../../db";
 import { generateEnvVars, generateSecrets } from "../../utils/helper";
-import { sendApplyFinishedEmail } from "../../utils/mailer";
+import { sendProposalAppliedEmail } from "../../utils/mailer";
 
 export const POST: APIRoute = async ({ request }) => {
   const { workspaceId, mainDirectory, proposalId, userId } =
@@ -47,7 +47,7 @@ export const POST: APIRoute = async ({ request }) => {
         controller.close();
 
         // send email to user
-        sendApplyFinishedEmail(proposalId);
+        await sendProposalAppliedEmail(proposalId);
       });
     },
   });
