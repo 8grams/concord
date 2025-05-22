@@ -12,8 +12,14 @@ import hbs from "nodemailer-express-handlebars";
  * @param {Object} data.context - Template context data
  */
 export async function sendEmail(to, subject, data) {
-  const from = env.SMTP_FROM_ADDRESS;
+  if (env.SMTP_HOST === "" 
+    || env.SMTP_PORT === "" 
+    || env.SMTP_USER === "" 
+    || env.SMTP_PASSWORD === "") { 
+    return;
+  }
 
+  const from = env.SMTP_FROM_ADDRESS;
   const transporter = nodemailer.createTransport({
     host: env.SMTP_HOST,
     port: parseInt(env.SMTP_PORT, 587),
