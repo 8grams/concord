@@ -43,12 +43,16 @@ export async function sendEmail(to, subject, data) {
     }),
   );
 
-  await transporter.sendMail({
-    to,
-    from,
-    subject,
-    ...data,
-  });
+  try {
+    await transporter.sendMail({
+      to,
+      from,
+      subject,
+      ...data,
+    });
+  } catch (error) {
+    console.error(error);
+  }
 }
 
 /**
