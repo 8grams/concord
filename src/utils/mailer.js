@@ -35,10 +35,10 @@ export async function sendEmail(to, subject, data) {
     hbs({
       viewEngine: {
         extname: ".hbs",
-        layoutsDir: "src/pages/emails/layouts",
-        partialsDir: "src/pages/emails/partials",
+        layoutsDir: `${env.EMAIL_TEMPLATES_PATH}/layouts`,
+        partialsDir: `${env.EMAIL_TEMPLATES_PATH}/partials`,
       },
-      viewPath: "src/pages/emails",
+      viewPath: `${env.EMAIL_TEMPLATES_PATH}`,
       extName: ".hbs",
     }),
   );

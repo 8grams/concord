@@ -66,6 +66,10 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./
 
+# copy email templates
+RUN mkdir -p /app/src/pages/emails
+COPY --from=builder /app/src/pages/emails /app/src/pages/emails
+
 RUN cd node_modules/better-sqlite3 && pnpm run build-release && pnpm prune --prod
 
 USER node
