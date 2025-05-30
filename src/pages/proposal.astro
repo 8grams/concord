@@ -385,6 +385,9 @@ const comments = await Db.getRepository(Comment).find({
       terminal.clear();
       terminal.write("\x1b[1;32m$ terraform plan\x1b[0m\r\n");
 
+      // Add beforeunload handler
+      window.addEventListener('beforeunload', handleBeforeUnload);
+
       const response = await fetch("/api/terraform-plan", {
         method: "POST",
         headers: {
@@ -405,6 +408,8 @@ const comments = await Db.getRepository(Comment).find({
         const { done, value } = await reader.read();
         if (done) {
           terminal.write("\r\n\x1b[1;32mPlan completed.\x1b[0m\r\n");
+          // Remove beforeunload handler
+          window.removeEventListener('beforeunload', handleBeforeUnload);
           break;
         }
         const text = decoder.decode(value);
@@ -419,6 +424,9 @@ const comments = await Db.getRepository(Comment).find({
     async function runTankaPlan() {
       terminal.clear();
       terminal.write("\x1b[1;32m$ tanka plan\x1b[0m\r\n\r\n");
+
+      // Add beforeunload handler
+      window.addEventListener('beforeunload', handleBeforeUnload);
 
       const select = document.getElementById('environment-select');
       const environment = select ? select.value : '';
@@ -444,6 +452,8 @@ const comments = await Db.getRepository(Comment).find({
         const { done, value } = await reader.read();
         if (done) {
           terminal.write("\r\n\x1b[1;32mPlan completed.\x1b[0m\r\n");
+          // Remove beforeunload handler
+          window.removeEventListener('beforeunload', handleBeforeUnload);
           break;
         }
         const text = decoder.decode(value);
@@ -460,6 +470,9 @@ const comments = await Db.getRepository(Comment).find({
       terminal.write(
         "\x1b[1;32m$ terraform apply\x1b[0m\r\n",
       );
+
+      // Add beforeunload handler
+      window.addEventListener('beforeunload', handleBeforeUnload);
 
       let allOutput = "";
 
@@ -483,6 +496,8 @@ const comments = await Db.getRepository(Comment).find({
         const { done, value } = await reader.read();
         if (done) {
           terminal.write("\r\n\x1b[1;32mApply completed.\x1b[0m\r\n");
+          // Remove beforeunload handler
+          window.removeEventListener('beforeunload', handleBeforeUnload);
           break;
         }
         const text = decoder.decode(value);
@@ -498,6 +513,9 @@ const comments = await Db.getRepository(Comment).find({
     async function runTankaApply() {
       terminal.clear();
       terminal.write("\x1b[1;32m$ tanka apply\x1b[0m\r\n\r\n");
+
+      // Add beforeunload handler
+      window.addEventListener('beforeunload', handleBeforeUnload);
 
       const select = document.getElementById('environment-select');
       const environment = select ? select.value : '';
@@ -523,6 +541,8 @@ const comments = await Db.getRepository(Comment).find({
         const { done, value } = await reader.read();
         if (done) {
           terminal.write("\r\n\x1b[1;32mApply completed.\x1b[0m\r\n");
+          // Remove beforeunload handler
+          window.removeEventListener('beforeunload', handleBeforeUnload);
           break;
         }
         const text = decoder.decode(value);
@@ -531,6 +551,13 @@ const comments = await Db.getRepository(Comment).find({
 
       // refresh page after completion
       window.location.reload();
+    }
+
+    // Add beforeunload event handler
+    function handleBeforeUnload(e) {
+      e.preventDefault();
+      e.returnValue = 'Operation in progress. Are you sure you want to leave?';
+      return e.returnValue;
     }
 
     // Add event listeners to the buttons
